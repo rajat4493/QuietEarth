@@ -97,7 +97,7 @@ enum QuestionnaireBank {
         question(
             "dullness",
             "During a quiet part of the day, what most often happens to your alertness?",
-            "Higher scores here mean a stronger low-energy or dullness tendency.",
+            "Choose what feels most typical; this will be shown as a descriptive pattern, not a score.",
             .energyDullness,
             [
                 ("bright", "It stays bright", -0.9, "Alertness tends to remain bright during quiet periods."),

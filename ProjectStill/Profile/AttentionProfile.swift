@@ -189,6 +189,19 @@ struct DimensionAssessment: Codable, Hashable, Identifiable {
     let confidence: Double
     let evidence: [ObservedSignal]
     let contradictions: [String]
+
+    var qualitativeLevel: String {
+        if score < 0.35 { return dimension.lowLabel }
+        if score > 0.65 { return dimension.highLabel }
+        return "Mixed"
+    }
+
+    var evidenceStrength: EvidenceStrength {
+        if confidence >= 0.72 { return .strong }
+        if confidence >= 0.48 { return .moderate }
+        if confidence > 0 { return .weak }
+        return .insufficient
+    }
 }
 
 struct ProfileInterpretation: Codable, Hashable {
@@ -197,50 +210,32 @@ struct ProfileInterpretation: Codable, Hashable {
     let reasons: [String]
 }
 
-enum EvidenceRelationship: String, Codable, Hashable {
-    case agreement
-    case disagreement
-    case singleSource
-}
-
-struct SourceComparison: Codable, Hashable, Identifiable {
-    var id: AttentionDimension { dimension }
-    let dimension: AttentionDimension
-    let relationship: EvidenceRelationship
-    let questionnaireScore: Double?
-    let externalAIScore: Double?
-    let questionnaireEvidence: [String]
-    let externalAIEvidence: [String]
-}
-
 struct AttentionProfile: Codable, Hashable {
     let dimensions: [DimensionAssessment]
     let interpretation: ProfileInterpretation
     let overallConfidence: Double
     let updatedAt: Date
-    let sourceComparisons: [SourceComparison]?
-    let alternativeInterpretations: [String]?
-    let externalSelfReportSummary: String?
-    let externalBehavioralSummary: String?
+    let externalEvidence: ExternalEvidenceBundle?
 
     init(
         dimensions: [DimensionAssessment],
         interpretation: ProfileInterpretation,
         overallConfidence: Double,
         updatedAt: Date,
-        sourceComparisons: [SourceComparison]? = nil,
-        alternativeInterpretations: [String]? = nil,
-        externalSelfReportSummary: String? = nil,
-        externalBehavioralSummary: String? = nil
+        externalEvidence: ExternalEvidenceBundle? = nil
     ) {
         self.dimensions = dimensions
         self.interpretation = interpretation
         self.overallConfidence = overallConfidence
         self.updatedAt = updatedAt
-        self.sourceComparisons = sourceComparisons
-        self.alternativeInterpretations = alternativeInterpretations
-        self.externalSelfReportSummary = externalSelfReportSummary
-        self.externalBehavioralSummary = externalBehavioralSummary
+        self.externalEvidence = externalEvidence
+    }
+
+    var evidenceStrength: EvidenceStrength {
+        if overallConfidence >= 0.72 { return .strong }
+        if overallConfidence >= 0.48 { return .moderate }
+        if overallConfidence > 0 { return .weak }
+        return .insufficient
     }
 
     func assessment(for dimension: AttentionDimension) -> DimensionAssessment {

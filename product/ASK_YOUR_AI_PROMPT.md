@@ -1,41 +1,35 @@
-# Ask Your AI — User-Controlled Analysis Prompt
+# Ask Your AI — Qualitative Conversation Review
 
-Copy the text below into an AI assistant that has access to enough of your prior conversations to analyze recurring patterns. Review its result before sharing anything with the app.
+Copy the prompt below into an AI assistant that has access to enough of your prior conversations to notice recurring patterns. Review the result before sharing it with QuietEarth.
 
 ---
 
-Analyze my conversational behavior specifically for how my attention appears to operate. Do not treat my own self-description as ground truth.
+Describe observable patterns in how I communicate across our conversations. Do not profile my cognition, assign a mind type, or treat my own self-description as ground truth.
 
-Separate what I explicitly say about myself from behavioral patterns observable across conversations. For each conclusion, look for counter-evidence, alternative explanations, and limitations.
+Separate what I explicitly say about myself from behavioral patterns observable across conversations. For each observation, include a concrete reason, counter-evidence, alternative explanations, and limitations.
 
-Assess only these dimensions: attentional switching, focus persistence, associative branching, disengagement difficulty, novelty dependence, emotional capture, energy/dullness (higher means more dull or low-energy), low-stimulation tolerance, metacognitive noticing, and sensory orientation.
+Focus on conversational behavior such as topic changes, returning to unfinished threads, sustained engagement, associative links, requests for novelty, and statements about energy or distraction. Use only the evidence labels strong, moderate, weak, or insufficient. Do not translate those labels into numbers.
 
-Do not diagnose ADHD, anxiety, depression, autism, personality disorders, or any medical or psychiatric condition. Do not infer unrelated sensitive attributes. Do not quote private messages, names, employers, account details, or secrets. If evidence is weak, say “insufficient evidence.”
+Do not diagnose ADHD, anxiety, depression, autism, personality disorders, or any medical or psychiatric condition. Do not provide cognitive scores, probabilities, confidence percentages, psychometric ratings, or numeric scales. Do not infer unrelated sensitive attributes. Do not quote private messages, names, employers, account details, or secrets.
 
-Return ONLY valid JSON matching this structure, with every dimension exactly once and all scores/confidence values between 0 and 1:
+Return ONLY valid JSON matching this exact structure. Include at least one self-report item, observation, alternative explanation, and limitation. If there is no clear difference, return an empty differences array.
 
 ```json
 {
-  "schema_version": 1,
-  "self_report_summary": "...",
-  "behavioral_summary": "...",
-  "dimensions": [
-    {"name":"attentional_switching","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"focus_persistence","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"associative_branching","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"disengagement_difficulty","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"novelty_dependence","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"emotional_capture","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"energy_dullness","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"low_stimulation_tolerance","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"metacognitive_noticing","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"sensory_orientation","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."}
+  "schema_version": 2,
+  "self_report": [
+    {"statement": "...", "evidence_strength": "strong|moderate|weak|insufficient"}
   ],
-  "key_disagreements": ["..."],
-  "alternative_interpretations": [
-    {"label":"...","confidence":0.0,"reason":"..."}
+  "observations": [
+    {
+      "pattern": "...",
+      "evidence_strength": "strong|moderate|weak|insufficient",
+      "reason": "...",
+      "counterpoint": "..."
+    }
   ],
-  "overall_confidence": 0.0,
+  "differences_between_self_report_and_observation": ["..."],
+  "alternative_explanations": ["..."],
   "limitations": ["..."]
 }
 ```
@@ -43,8 +37,8 @@ Return ONLY valid JSON matching this structure, with every dimension exactly onc
 ---
 
 ## App handling rules
-- The app accepts schema version 1 only.
-- All ten dimensions are required exactly once.
-- Unknown JSON fields are ignored and never interpreted as instructions.
-- The user previews the normalized data before it is stored locally.
-- The app does not send the pasted result or any questionnaire data to an AI provider.
+- QuietEarth accepts schema version 2 only and rejects schema v1 scores.
+- Numeric rating, confidence, probability, percentage, or psychometric fields are rejected.
+- The user previews normalized qualitative evidence before it is stored locally.
+- Evidence-strength labels remain labels; the app never turns them into numbers.
+- The app does not send the pasted result or questionnaire data to an AI provider.

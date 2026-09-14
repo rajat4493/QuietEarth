@@ -124,22 +124,20 @@ enum QuestionnairePersistence {
         let answers = (try? context.fetch(FetchDescriptor<QuestionnaireSession>()).first?.answers) ?? []
         let externalRecords = (try? context.fetch(FetchDescriptor<StoredExternalAIProfile>())) ?? []
         let external = externalRecords.first
-        let payload = external?.payload
-        let signals: [ObservedSignal]
+        let externalEvidence: ExternalEvidenceBundle?
         if let record = external, let payload = record.payload {
-            signals = ExternalEvidenceConverter.signals(
+            externalEvidence = ExternalEvidenceConverter.bundle(
                 from: payload,
                 provider: record.provider,
                 approvedAt: record.approvedAt,
                 userNote: record.userNote
             )
         } else {
-            signals = []
+            externalEvidence = nil
         }
         let profile = ProfileEngine().makeProfile(
             from: answers,
-            additionalSignals: signals,
-            externalPayload: payload
+            externalEvidence: externalEvidence
         )
         saveProfile(profile, in: context)
     }

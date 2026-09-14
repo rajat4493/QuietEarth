@@ -35,8 +35,7 @@ struct AttentionProfile: Codable {
     let dimensions: [DimensionAssessment]
     let interpretation: ProfileInterpretation
     let overallConfidence: Double
-    let sourceComparisons: [SourceComparison]?
-    let alternativeInterpretations: [String]?
+    let externalEvidence: ExternalEvidenceBundle?
     let updatedAt: Date
 }
 ```
@@ -51,5 +50,7 @@ The questionnaire implementation establishes this evidence pipeline before exter
 
 Each `ObservedSignal` retains a stable question identifier, direction, weight, evidence source, and user-facing summary. `DimensionAssessment` retains the contributing signals and explicit contradiction explanations. M1 also adds `sensoryOrientation` as a tenth dimension and defines `energyDullness` so higher values always represent greater dullness/low-energy tendency. See `duck/m1_scoring_model.md` for the implemented scoring and confidence rules.
 
-## M2 implementation note
-`ObservedSignal` now carries provider-aware provenance, confidence, timestamp, evidence category, and an optional user-approved note. Legacy M1 questionnaire signals decode into the expanded model with safe defaults. External schema and reconciliation rules are documented in `duck/m2_external_ai_schema.md`.
+## M1.6 inference reset
+Questionnaire weights remain a private deterministic implementation detail and are presented as qualitative bands/evidence strength. External AI observations use separate `QualitativeEvidenceRecord` values with provider provenance, timestamp, category, strength label, statement, reason, counterpoint, and optional approved note.
+
+External evidence never becomes an `ObservedSignal`, never receives a direction or weight, and never changes questionnaire scores. The shared product boundary is qualitative evidence; only the questionnaire engine retains its internal numeric implementation. External schema and comparison rules are documented in `duck/m2_external_ai_schema.md`.

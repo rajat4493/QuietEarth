@@ -6,65 +6,60 @@ import Testing
 struct ReconciliationTests {
     private let engine = ProfileEngine()
 
-    @Test("Questionnaire and external evidence can strongly agree")
-    func agreement() {
-        let answers = [
-            QuestionAnswer(questionID: "switching", optionID: "very_often", answeredAt: .distantPast),
-            QuestionAnswer(questionID: "deadline", optionID: "fragments", answeredAt: .distantPast)
-        ]
-        let payload = ExternalAIFixture.payload(scores: [.attentionalSwitching: 0.9])
-        let signals = ExternalEvidenceConverter.signals(from: payload, provider: .chatGPT, approvedAt: .distantPast, userNote: nil)
-        let profile = engine.makeProfile(from: answers, additionalSignals: signals, externalPayload: payload)
-        let comparison = profile.sourceComparisons?.first { $0.dimension == .attentionalSwitching }
+    @Test("External observations retain language, provenance, strength, and counterpoint")
+    func qualitativeEvidencePreserved() {
+        let payload = ExternalAIFixture.payload()
+        let bundle = ExternalEvidenceConverter.bundle(
+            from: payload,
+            provider: .claude,
+            approvedAt: .distantPast,
+            userNote: "Approved fixture"
+        )
 
-        #expect(comparison?.relationship == .agreement)
-        #expect(profile.assessment(for: .attentionalSwitching).contradictions.isEmpty)
+        #expect(bundle.observations.first?.source == .externalAI(provider: .claude))
+        #expect(bundle.observations.first?.strength == .moderate)
+        #expect(bundle.observations.first?.counterpoint == payload.observations.first?.counterpoint)
+        #expect(bundle.observations.first?.userApprovedNote == "Approved fixture")
     }
 
-    @Test("Partial disagreement stays visible and reduces confidence")
-    func disagreement() {
-        let lowSwitching = [
+    @Test("External evidence never changes questionnaire dimensions")
+    func noHiddenNumericReconciliation() {
+        let answers = [
             QuestionAnswer(questionID: "switching", optionID: "rarely", answeredAt: .distantPast),
-            QuestionAnswer(questionID: "deadline", optionID: "locks", answeredAt: .distantPast)
+            QuestionAnswer(questionID: "persistence", optionID: "very_long", answeredAt: .distantPast)
         ]
-        let highSwitching = [
-            QuestionAnswer(questionID: "switching", optionID: "very_often", answeredAt: .distantPast),
-            QuestionAnswer(questionID: "deadline", optionID: "fragments", answeredAt: .distantPast)
-        ]
-        let payload = ExternalAIFixture.payload(scores: [.attentionalSwitching: 0.9])
-        let signals = ExternalEvidenceConverter.signals(from: payload, provider: .claude, approvedAt: .distantPast, userNote: nil)
-        let disagreeing = engine.makeProfile(from: lowSwitching, additionalSignals: signals, externalPayload: payload)
-        let agreeing = engine.makeProfile(from: highSwitching, additionalSignals: signals, externalPayload: payload)
-        let comparison = disagreeing.sourceComparisons?.first { $0.dimension == .attentionalSwitching }
+        let questionnaireOnly = engine.makeProfile(from: answers, now: .distantPast)
+        let bundle = ExternalEvidenceConverter.bundle(
+            from: ExternalAIFixture.payload(),
+            provider: .chatGPT,
+            approvedAt: .distantPast,
+            userNote: nil
+        )
+        let withExternal = engine.makeProfile(from: answers, externalEvidence: bundle, now: .distantPast)
 
-        #expect(comparison?.relationship == .disagreement)
-        #expect(!disagreeing.assessment(for: .attentionalSwitching).contradictions.isEmpty)
-        #expect(disagreeing.assessment(for: .attentionalSwitching).confidence < agreeing.assessment(for: .attentionalSwitching).confidence)
+        #expect(withExternal.dimensions == questionnaireOnly.dimensions)
+        #expect(withExternal.interpretation == questionnaireOnly.interpretation)
+        #expect(withExternal.externalEvidence?.differences.isEmpty == false)
     }
 
-    @Test("Low self-reported focus plus observed persistence preserves capacity and gating")
-    func capacityAndGating() {
-        let answers = [
-            QuestionAnswer(questionID: "switching", optionID: "very_often", answeredAt: .distantPast),
-            QuestionAnswer(questionID: "persistence", optionID: "brief", answeredAt: .distantPast),
-            QuestionAnswer(questionID: "deadline", optionID: "fragments", answeredAt: .distantPast)
-        ]
-        let payload = ExternalAIFixture.payload(scores: [
-            .attentionalSwitching: 0.85,
-            .focusPersistence: 0.9
-        ])
-        let signals = ExternalEvidenceConverter.signals(from: payload, provider: .chatGPT, approvedAt: .distantPast, userNote: nil)
-        let profile = engine.makeProfile(from: answers, additionalSignals: signals, externalPayload: payload)
+    @Test("Agreement fixture remains a separate source without fabricated score")
+    func agreement() {
+        let payload = ExternalAIFixture.payload(differences: [])
+        let bundle = ExternalEvidenceConverter.bundle(
+            from: payload,
+            provider: .chatGPT,
+            approvedAt: .distantPast,
+            userNote: nil
+        )
+        let profile = engine.makeProfile(from: [], externalEvidence: bundle, now: .distantPast)
 
-        #expect(profile.interpretation.title == "Capacity present, gating appears variable")
-        #expect(profile.alternativeInterpretations?.contains(where: {
-            $0.localizedCaseInsensitiveContains("generalized weak concentration")
-        }) == true)
-        #expect(profile.sourceComparisons?.first(where: { $0.dimension == .focusPersistence })?.relationship == .disagreement)
+        #expect(profile.externalEvidence?.differences.isEmpty == true)
+        #expect(profile.evidenceStrength == .insufficient)
+        #expect(profile.externalEvidence?.observations.first?.strength == .moderate)
     }
 
     @MainActor
-    @Test("Removing AI evidence restores questionnaire-only dimensions exactly")
+    @Test("Removing AI evidence restores questionnaire-only profile exactly")
     func deletionReversion() throws {
         let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(
@@ -84,18 +79,19 @@ struct ReconciliationTests {
 
         QuestionnairePersistence.saveExternalProfile(
             provider: .chatGPT,
-            payload: ExternalAIFixture.payload(scores: [.attentionalSwitching: 0.9]),
+            payload: ExternalAIFixture.payload(),
             userNote: "Approved fixture",
             in: context
         )
-        #expect(try context.fetch(FetchDescriptor<StoredExternalAIProfile>()).count == 1)
+        let imported = try #require(context.fetch(FetchDescriptor<StoredAttentionProfile>()).first?.profile)
+        #expect(imported.dimensions == questionnaireOnly.dimensions)
+        #expect(imported.externalEvidence != nil)
 
         QuestionnairePersistence.removeExternalProfile(in: context)
         let reverted = try #require(context.fetch(FetchDescriptor<StoredAttentionProfile>()).first?.profile)
         #expect(try context.fetch(FetchDescriptor<StoredExternalAIProfile>()).isEmpty)
         #expect(reverted.dimensions == questionnaireOnly.dimensions)
         #expect(reverted.interpretation == questionnaireOnly.interpretation)
-        #expect(reverted.sourceComparisons == nil)
+        #expect(reverted.externalEvidence == nil)
     }
 }
-

@@ -10,6 +10,7 @@ struct ExternalAIIntakeView: View {
     @State private var previewSelection: ExternalAIPreviewSelection?
     @State private var validationMessage: String?
     @State private var copied = false
+    @FocusState private var isEditorFocused: Bool
 
     let onComplete: () -> Void
 
@@ -21,7 +22,7 @@ struct ExternalAIIntakeView: View {
                     .foregroundStyle(Color.quietInk)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Your conversations stay with your AI provider. Copy our prompt there, review its JSON result, then paste only that result here.")
+                Text("Your conversations stay with your AI provider. Copy our prompt there, then bring back only its qualitative observations — no cognitive scores or probabilities.")
                     .font(.quietBody)
                     .foregroundStyle(Color.quietInk.opacity(0.72))
 
@@ -44,8 +45,7 @@ struct ExternalAIIntakeView: View {
                     }
                     .frame(height: 180)
                     .padding(QuietSpacing.standard)
-                    .background(Color.quietMist)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .quietCard()
 
                     Button(copied ? "Prompt copied" : "Copy prompt") {
                         UIPasteboard.general.string = ExternalAIPrompt.text
@@ -64,8 +64,7 @@ struct ExternalAIIntakeView: View {
                         .frame(minHeight: 220)
                         .padding(QuietSpacing.compact)
                         .scrollContentBackground(.hidden)
-                        .background(Color.quietMist)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .quietCard()
                         .overlay(alignment: .topLeading) {
                             if pastedText.isEmpty {
                                 Text("Paste JSON only")
@@ -75,6 +74,7 @@ struct ExternalAIIntakeView: View {
                                     .allowsHitTesting(false)
                             }
                         }
+                        .focused($isEditorFocused)
                         .accessibilityIdentifier("externalAI.jsonEditor")
 
                     Button("Paste from clipboard") {
@@ -89,13 +89,6 @@ struct ExternalAIIntakeView: View {
                         .accessibilityIdentifier("externalAI.note")
                 }
 
-                if let validationMessage {
-                    Label(validationMessage, systemImage: "exclamationmark.triangle")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.quietClay)
-                        .accessibilityIdentifier("externalAI.validationError")
-                }
-
                 Button("Review profile") {
                     validate()
                 }
@@ -103,7 +96,7 @@ struct ExternalAIIntakeView: View {
                 .disabled(pastedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("externalAI.review")
 
-                Text("Nothing is sent from this app. The pasted buffer is stored only after you approve the normalized preview.")
+                Text("Nothing is sent from this app. Evidence-strength labels remain qualitative and the pasted buffer is stored only after you approve the normalized preview.")
                     .font(.footnote)
                     .foregroundStyle(Color.quietInk.opacity(0.58))
             }
@@ -112,6 +105,17 @@ struct ExternalAIIntakeView: View {
         .background(Color.quietPaper.ignoresSafeArea())
         .navigationTitle("Use your AI")
         .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .top) {
+            if let validationMessage {
+                Label(validationMessage, systemImage: "exclamationmark.triangle")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(Color.quietInk)
+                    .padding(QuietSpacing.standard)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.quietCoral)
+                    .accessibilityIdentifier("externalAI.validationError")
+            }
+        }
         .sheet(item: $previewSelection) { selection in
             ExternalAIProfilePreviewView(
                 payload: selection.payload,
@@ -122,6 +126,7 @@ struct ExternalAIIntakeView: View {
     }
 
     private func validate() {
+        isEditorFocused = false
         do {
             let parsedProfile = try ExternalAIProfileParser().parse(pastedText)
             previewSelection = ExternalAIPreviewSelection(payload: parsedProfile)

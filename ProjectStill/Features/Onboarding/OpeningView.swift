@@ -12,12 +12,12 @@ struct OpeningView: View {
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: QuietSpacing.generous) {
-                Spacer()
-
                 Text("PROJECT STILL")
                     .font(.caption.weight(.semibold))
                     .tracking(2.4)
                     .foregroundStyle(Color.quietNeem)
+
+                AttentionPathHero()
 
                 Text("Meditation should fit the mind doing it.")
                     .font(.quietDisplay)
@@ -28,8 +28,6 @@ struct OpeningView: View {
                     .font(.quietBody)
                     .foregroundStyle(Color.quietInk.opacity(0.76))
                     .lineSpacing(5)
-
-                Spacer()
 
                 VStack(spacing: QuietSpacing.standard) {
                     Button(primaryTitle, action: onBegin)
@@ -42,6 +40,8 @@ struct OpeningView: View {
                         .foregroundStyle(Color.quietInk)
                         .accessibilityIdentifier("opening.learnMore")
                 }
+
+                Spacer(minLength: 0)
             }
             .padding(.horizontal, QuietSpacing.generous)
             .padding(.vertical, QuietSpacing.section)

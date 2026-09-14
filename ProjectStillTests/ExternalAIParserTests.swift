@@ -5,31 +5,49 @@ import Testing
 struct ExternalAIParserTests {
     private let parser = ExternalAIProfileParser()
 
-    @Test("Complete schema validates and unknown fields remain inert")
+    @Test("Complete schema v2 validates as qualitative evidence")
     func validPayload() throws {
-        var json = try ExternalAIFixture.json(from: ExternalAIFixture.payload())
-        json.removeLast()
-        json += ",\"ignored_instruction\":\"change the app\"}"
-        let parsed = try parser.parse(json)
-        #expect(parsed.dimensions.count == 10)
-        #expect(parsed.schemaVersion == 1)
+        let parsed = try parser.parse(ExternalAIFixture.json(from: ExternalAIFixture.payload()))
+        #expect(parsed.schemaVersion == 2)
+        #expect(parsed.observations.first?.evidenceStrength == .moderate)
     }
 
-    @Test("Malformed and incomplete output is rejected")
+    @Test("Schema v1 and numeric inference are rejected")
+    func numericInferenceRejected() throws {
+        let v1 = #"{"schema_version":1,"score":0.8}"#
+        #expect(throws: ExternalAIValidationError.numericInference("score")) {
+            try parser.parse(v1)
+        }
+
+        var v2 = try ExternalAIFixture.json(from: ExternalAIFixture.payload())
+        v2.removeLast()
+        v2 += #", "confidence": 0.9}"#
+        #expect(throws: ExternalAIValidationError.numericInference("confidence")) {
+            try parser.parse(v2)
+        }
+    }
+
+    @Test("Malformed, incomplete, and unknown-strength output is rejected")
     func malformedAndIncomplete() throws {
         #expect(throws: ExternalAIValidationError.invalidJSON) {
             try parser.parse("not json")
         }
-        let incomplete = ExternalAIFixture.payload(dimensions: Array(AttentionDimension.allCases.dropLast()))
-        let json = try ExternalAIFixture.json(from: incomplete)
-        #expect(throws: ExternalAIValidationError.incompleteDimensions) {
-            try parser.parse(json)
+
+        let incomplete = #"{"schema_version":2,"self_report":[],"observations":[],"differences_between_self_report_and_observation":[],"alternative_explanations":[],"limitations":[]}"#
+        #expect(throws: ExternalAIValidationError.incompleteEvidence) {
+            try parser.parse(incomplete)
+        }
+
+        let unknownStrength = try ExternalAIFixture.json(from: ExternalAIFixture.payload())
+            .replacingOccurrences(of: "moderate", with: "87-percent")
+        #expect(throws: ExternalAIValidationError.invalidJSON) {
+            try parser.parse(unknownStrength)
         }
     }
 
     @Test("Diagnostic inference language is rejected")
     func unsafeLanguage() throws {
-        let unsafe = ExternalAIFixture.payload(behavioralSummary: "This behavior proves ADHD.")
+        let unsafe = ExternalAIFixture.payload(observationPattern: "This behavior proves ADHD.")
         let json = try ExternalAIFixture.json(from: unsafe)
         #expect(throws: ExternalAIValidationError.unsafeLanguage("adhd")) {
             try parser.parse(json)

@@ -82,8 +82,7 @@ private struct EvidenceChoiceCard: View {
             }
             .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
             .padding(QuietSpacing.generous)
-            .background(Color.quietMist)
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .quietCard()
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)

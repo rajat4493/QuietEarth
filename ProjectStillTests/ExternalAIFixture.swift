@@ -3,34 +3,30 @@ import Foundation
 
 enum ExternalAIFixture {
     static func payload(
-        scores: [AttentionDimension: Double] = [:],
-        behavioralSummary: String = "Behavior shows a stable mix of switching and persistence.",
-        dimensions: [AttentionDimension] = AttentionDimension.allCases,
-        overallConfidence: Double = 0.8
+        differences: [String] = ["Self-report emphasizes weak focus, while conversation shows sustained engagement when personally interested."],
+        observationPattern: String = "The user often changes topics, then returns to an earlier thread and develops it in depth."
     ) -> ExternalAIProfilePayload {
         ExternalAIProfilePayload(
-            schemaVersion: 1,
-            selfReportSummary: "The user describes attention as inconsistent.",
-            behavioralSummary: behavioralSummary,
-            dimensions: dimensions.map { dimension in
-                ExternalAIDimension(
-                    name: name(for: dimension),
-                    score: scores[dimension] ?? 0.5,
-                    confidence: 0.85,
-                    evidenceSummary: "Observed evidence for \(dimension.title.lowercased()).",
-                    counterEvidence: "None found."
-                )
-            },
-            keyDisagreements: ["Self-description may understate context-specific persistence."],
-            alternativeInterpretations: [
-                ExternalAIAlternative(
-                    label: "Generalized weak concentration",
-                    confidence: 0.3,
-                    reason: "Possible, but it does not explain sustained engagement."
+            schemaVersion: 2,
+            selfReport: [
+                ExternalAISelfReport(
+                    statement: "The user frequently says they cannot stay focused.",
+                    evidenceStrength: .strong
                 )
             ],
-            overallConfidence: overallConfidence,
-            limitations: ["Conversation behavior is only one context."]
+            observations: [
+                ExternalAIObservation(
+                    pattern: observationPattern,
+                    evidenceStrength: .moderate,
+                    reason: "Several conversations contain long, detailed follow-through after an initial topic change.",
+                    counterpoint: "The sample mostly covers topics the user chose and may not represent routine tasks."
+                )
+            ],
+            differencesBetweenSelfReportAndObservation: differences,
+            alternativeExplanations: [
+                "Interest and context may explain the difference better than a general concentration trait."
+            ],
+            limitations: ["Conversation behavior represents only one setting."]
         )
     }
 
@@ -38,9 +34,4 @@ enum ExternalAIFixture {
         let data = try JSONEncoder().encode(payload)
         return String(decoding: data, as: UTF8.self)
     }
-
-    private static func name(for dimension: AttentionDimension) -> String {
-        ExternalAIProfileParser.dimensionNames.first { $0.value == dimension }!.key
-    }
 }
-

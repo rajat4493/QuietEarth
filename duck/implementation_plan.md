@@ -14,13 +14,14 @@ ProjectStill should help a meditation-curious adult form a provisional, evidence
 ## Milestone plan
 1. **M0 — Shell, design tokens, navigation:** establish the Xcode project, accessible visual foundation, opening screen, explanatory route, privacy-choice route, and placeholder boundaries for later features.
 2. **M1 — Questionnaire and local profile:** implement the 12–18 question intake, local domain models, deterministic questionnaire scoring, persistence, and tests.
-3. **M2 — Ask-your-AI route:** provide the approved prompt, paste flow, strict schema decoding, validation preview, and malformed-input fixtures.
-4. **M3 — Profile review:** separate self-report, evidence, disagreement, alternatives, and confidence; allow correction without erasing contradictory evidence.
-5. **M4 — Recommendation engine:** implement deterministic rules and the first three practice templates with user-visible rationales.
-6. **M5 — Session and reflection:** deliver an offline guided timer, accessible haptics/transitions, and the sub-30-second reflection flow.
-7. **M6 — Seven-day adaptation:** store outcomes, enforce minimum evidence thresholds, reassess on day seven, and explain changes.
-8. **M7 — Privacy/reset and experimental import:** verify deletion, add guarded import support, and fail clearly for unsupported exports.
-9. **M8 — Polish and internal release:** complete accessibility, device, privacy, regression, and TestFlight-readiness checks.
+3. **M1.6 — Visual and inference reset:** establish Sunlit Calm, keep questionnaire scoring internal/qualitative in presentation, and replace numeric external inference with qualitative schema v2. This supersedes the first M2 schema v1 implementation.
+4. **M2 — Ask-your-AI route:** provide the approved qualitative prompt, paste flow, strict schema-v2 decoding, validation preview, and malformed-input fixtures. External observations never become hidden scores.
+5. **M3 — Profile review:** separate self-report, evidence, disagreement, alternatives, and confidence; allow correction without erasing contradictory evidence.
+6. **M4 — Recommendation engine:** implement deterministic rules and the first three practice templates with user-visible rationales.
+7. **M5 — Session and reflection:** deliver an offline guided timer, accessible haptics/transitions, and the sub-30-second reflection flow.
+8. **M6 — Seven-day adaptation:** store outcomes, enforce minimum evidence thresholds, reassess on day seven, and explain changes.
+9. **M7 — Privacy/reset and experimental import:** verify deletion, add guarded import support, and fail clearly for unsupported exports.
+10. **M8 — Polish and internal release:** complete accessibility, device, privacy, regression, and TestFlight-readiness checks.
 
 Each milestone stops for review and includes build/test output, simulator evidence, known issues, privacy/data-flow notes, and ledger updates.
 
@@ -52,4 +53,3 @@ No therapy or diagnosis, medical claims, accounts, analytics, subscriptions, soc
 - Use fixtures for contradictory, insufficient, malformed, boundary, and unsupported-import evidence.
 - Verify local-first and offline claims with network inspection before marking them complete.
 - Update `duck/03_evidence_verification_ledger.md`, the human summary, known issues, and privacy/data-flow notes at every milestone.
-

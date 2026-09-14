@@ -16,35 +16,35 @@ struct ExternalAIProfilePreviewView: View {
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("externalAI.previewTitle")
 
-                    Text("Only this normalized profile from \(provider.title) will be stored. Check it before adding it as evidence.")
+                    Text("Only these qualitative observations from \(provider.title) will be stored. Evidence labels stay descriptive — QuietEarth does not turn them into scores.")
                         .font(.quietBody)
                         .foregroundStyle(Color.quietInk.opacity(0.72))
 
-                    previewSection("Self-report summary", payload.selfReportSummary)
-                    previewSection("Behavioral summary", payload.behavioralSummary)
-
-                    VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                        Text("Dimension evidence")
-                            .font(.quietTitle)
-                        ForEach(payload.dimensions, id: \.name) { dimension in
-                            VStack(alignment: .leading, spacing: QuietSpacing.compact) {
-                                HStack {
-                                    Text(title(for: dimension.name)).font(.headline)
-                                    Spacer()
-                                    Text(dimension.score, format: .percent.precision(.fractionLength(0)))
-                                        .font(.headline.monospacedDigit())
-                                }
-                                Text(dimension.evidenceSummary)
-                                    .font(.subheadline)
-                                Text("Counter-evidence: \(dimension.counterEvidence)")
-                                    .font(.caption)
-                                    .foregroundStyle(Color.quietInk.opacity(0.62))
-                            }
-                            .padding(QuietSpacing.standard)
-                            .background(Color.quietMist)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    evidenceSection("Self-report found in conversation") {
+                        ForEach(Array(payload.selfReport.enumerated()), id: \.offset) { _, item in
+                            EvidencePreviewCard(
+                                statement: item.statement,
+                                strength: item.evidenceStrength
+                            )
                         }
                     }
+
+                    evidenceSection("Observable conversation patterns") {
+                        ForEach(Array(payload.observations.enumerated()), id: \.offset) { _, item in
+                            EvidencePreviewCard(
+                                statement: item.pattern,
+                                strength: item.evidenceStrength,
+                                reason: item.reason,
+                                counterpoint: item.counterpoint
+                            )
+                        }
+                    }
+
+                    if !payload.differencesBetweenSelfReportAndObservation.isEmpty {
+                        textList("Where the views differ", payload.differencesBetweenSelfReportAndObservation)
+                    }
+                    textList("Alternative explanations", payload.alternativeExplanations)
+                    textList("Limitations", payload.limitations)
 
                     Button("Approve and compare", action: onApprove)
                         .buttonStyle(.primaryAction)
@@ -59,17 +59,56 @@ struct ExternalAIProfilePreviewView: View {
         }
     }
 
-    private func previewSection(_ title: String, _ text: String) -> some View {
-        VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+    private func evidenceSection<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: QuietSpacing.standard) {
             Text(title).font(.quietTitle)
-            Text(text)
-                .font(.quietBody)
-                .foregroundStyle(Color.quietInk.opacity(0.72))
+            content()
         }
     }
 
-    private func title(for name: String) -> String {
-        ExternalAIProfileParser.dimensionNames[name]?.title ?? name
+    private func textList(_ title: String, _ items: [String]) -> some View {
+        VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+            Text(title).font(.quietTitle)
+            ForEach(items, id: \.self) { item in
+                Label(item, systemImage: "arrow.triangle.branch")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.quietInk.opacity(0.72))
+            }
+        }
     }
 }
 
+struct EvidencePreviewCard: View {
+    let statement: String
+    let strength: EvidenceStrength
+    var reason: String? = nil
+    var counterpoint: String? = nil
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(statement)
+                    .font(.headline)
+                Spacer(minLength: QuietSpacing.compact)
+                Text(strength.title)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.quietNeem)
+            }
+            if let reason {
+                Text(reason)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.quietInk.opacity(0.7))
+            }
+            if let counterpoint {
+                Label(counterpoint, systemImage: "arrow.left.arrow.right")
+                    .font(.caption)
+                    .foregroundStyle(Color.quietClay)
+            }
+        }
+        .padding(QuietSpacing.standard)
+        .quietCard()
+    }
+}

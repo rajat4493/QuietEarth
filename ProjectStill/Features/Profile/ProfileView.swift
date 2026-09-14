@@ -59,10 +59,10 @@ struct ProfileView: View {
 
                 VStack(alignment: .leading, spacing: QuietSpacing.standard) {
                     HStack {
-                        Text("Dimensions")
+                        Text("What your answers suggest")
                             .font(.quietTitle)
                         Spacer()
-                        Text("Confidence \(profile.overallConfidence, format: .percent.precision(.fractionLength(0)))")
+                        Text("\(profile.evidenceStrength.title) evidence")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.quietNeem)
                     }
@@ -80,7 +80,7 @@ struct ProfileView: View {
                     .accessibilityIdentifier("profile.reviewAnswers")
                 }
 
-                Text("This is a provisional interpretation of questionnaire answers, not a diagnosis or a permanent type.")
+                Text("This is a provisional interpretation of questionnaire answers. The labels are descriptive ranges, not psychometric measurements, diagnoses, or permanent types.")
                     .font(.footnote)
                     .foregroundStyle(Color.quietInk.opacity(0.6))
             }
@@ -120,24 +120,19 @@ private struct DimensionCard: View {
                     Text(assessment.dimension.title)
                         .font(.headline)
                     Spacer()
-                    Text(assessment.score, format: .percent.precision(.fractionLength(0)))
-                        .font(.headline.monospacedDigit())
+                    Text(assessment.qualitativeLevel)
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(Color.quietNeem)
                 }
-                ProgressView(value: assessment.score)
-                    .tint(.quietNeem)
                 HStack {
-                    Text(assessment.dimension.lowLabel)
-                    Spacer()
-                    Text("confidence \(assessment.confidence, format: .percent.precision(.fractionLength(0)))")
-                    Spacer()
-                    Text(assessment.dimension.highLabel)
+                    Image(systemName: "leaf.fill")
+                    Text("\(assessment.evidenceStrength.title) questionnaire evidence")
                 }
                 .font(.caption2)
                 .foregroundStyle(Color.quietInk.opacity(0.58))
             }
         }
         .padding(QuietSpacing.standard)
-        .background(Color.quietMist)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .quietCard()
     }
 }

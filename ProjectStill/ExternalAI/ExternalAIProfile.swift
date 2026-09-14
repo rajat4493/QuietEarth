@@ -1,45 +1,52 @@
 import Foundation
 
+enum EvidenceStrength: String, CaseIterable, Codable, Hashable {
+    case strong
+    case moderate
+    case weak
+    case insufficient
+
+    var title: String { rawValue.capitalized }
+}
+
+struct ExternalAISelfReport: Codable, Hashable {
+    let statement: String
+    let evidenceStrength: EvidenceStrength
+
+    private enum CodingKeys: String, CodingKey {
+        case statement
+        case evidenceStrength = "evidence_strength"
+    }
+}
+
+struct ExternalAIObservation: Codable, Hashable {
+    let pattern: String
+    let evidenceStrength: EvidenceStrength
+    let reason: String
+    let counterpoint: String
+
+    private enum CodingKeys: String, CodingKey {
+        case pattern, reason, counterpoint
+        case evidenceStrength = "evidence_strength"
+    }
+}
+
 struct ExternalAIProfilePayload: Codable, Hashable {
     let schemaVersion: Int
-    let selfReportSummary: String
-    let behavioralSummary: String
-    let dimensions: [ExternalAIDimension]
-    let keyDisagreements: [String]
-    let alternativeInterpretations: [ExternalAIAlternative]
-    let overallConfidence: Double
+    let selfReport: [ExternalAISelfReport]
+    let observations: [ExternalAIObservation]
+    let differencesBetweenSelfReportAndObservation: [String]
+    let alternativeExplanations: [String]
     let limitations: [String]
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion = "schema_version"
-        case selfReportSummary = "self_report_summary"
-        case behavioralSummary = "behavioral_summary"
-        case dimensions
-        case keyDisagreements = "key_disagreements"
-        case alternativeInterpretations = "alternative_interpretations"
-        case overallConfidence = "overall_confidence"
+        case selfReport = "self_report"
+        case observations
+        case differencesBetweenSelfReportAndObservation = "differences_between_self_report_and_observation"
+        case alternativeExplanations = "alternative_explanations"
         case limitations
     }
-}
-
-struct ExternalAIDimension: Codable, Hashable {
-    let name: String
-    let score: Double
-    let confidence: Double
-    let evidenceSummary: String
-    let counterEvidence: String
-
-    private enum CodingKeys: String, CodingKey {
-        case name, score, confidence
-        case evidenceSummary = "evidence_summary"
-        case counterEvidence = "counter_evidence"
-    }
-}
-
-struct ExternalAIAlternative: Codable, Hashable {
-    let label: String
-    let confidence: Double
-    let reason: String
 }
 
 enum ExternalAIValidationError: Error, Equatable, LocalizedError {
@@ -47,10 +54,9 @@ enum ExternalAIValidationError: Error, Equatable, LocalizedError {
     case tooLarge
     case invalidJSON
     case unsupportedSchema
-    case incompleteDimensions
-    case duplicateDimensions
-    case unknownDimension(String)
-    case outOfRange
+    case unexpectedField(String)
+    case numericInference(String)
+    case incompleteEvidence
     case missingText
     case unsafeLanguage(String)
 
@@ -60,35 +66,30 @@ enum ExternalAIValidationError: Error, Equatable, LocalizedError {
         case .tooLarge: "This result is larger than the supported 40 KB profile limit."
         case .invalidJSON: "This is not valid profile JSON. Ask your AI to return only the requested JSON."
         case .unsupportedSchema: "This profile uses an unsupported schema version. Copy the current prompt and try again."
-        case .incompleteDimensions: "The profile must contain every requested attention dimension exactly once."
-        case .duplicateDimensions: "The profile contains the same dimension more than once."
-        case .unknownDimension(let name): "The profile contains an unknown dimension: \(name)."
-        case .outOfRange: "Every score and confidence value must be between 0 and 1."
-        case .missingText: "A required evidence or summary field is empty."
+        case .unexpectedField(let field): "The result contains an unsupported field (‘\(field)’). Copy the current prompt and try again."
+        case .numericInference(let field): "The result tries to assign a numeric rating (‘\(field)’). QuietEarth accepts qualitative observations only."
+        case .incompleteEvidence: "The result needs at least one self-report item, observation, alternative explanation, and limitation."
+        case .missingText: "A required statement, reason, counterpoint, or explanation is empty or too long."
         case .unsafeLanguage(let term): "The result includes diagnostic or unsafe inference language (‘\(term)’). Ask your AI to follow the non-diagnostic prompt."
         }
     }
 }
 
 struct ExternalAIProfileParser {
-    static let dimensionNames: [String: AttentionDimension] = [
-        "attentional_switching": .attentionalSwitching,
-        "focus_persistence": .focusPersistence,
-        "associative_branching": .associativeBranching,
-        "disengagement_difficulty": .disengagementDifficulty,
-        "novelty_dependence": .noveltyDependence,
-        "emotional_capture": .emotionalCapture,
-        "energy_dullness": .energyDullness,
-        "low_stimulation_tolerance": .lowStimulationTolerance,
-        "metacognitive_noticing": .metacognitiveNoticing,
-        "sensory_orientation": .sensoryOrientation
-    ]
-
     private let maximumBytes = 40_000
+    private let allowedTopLevelFields: Set<String> = [
+        "schema_version", "self_report", "observations",
+        "differences_between_self_report_and_observation",
+        "alternative_explanations", "limitations"
+    ]
+    private let numericInferenceFields: Set<String> = [
+        "score", "confidence", "probability", "rating", "percent", "percentage",
+        "overall_confidence", "cognitive_score", "psychometric_score"
+    ]
     private let unsafeTerms = [
         "adhd", "attention deficit", "anxiety disorder", "depression",
         "autism", "bipolar", "ptsd", "personality disorder", "you have a disorder",
-        "diagnosed with", "clinical diagnosis"
+        "diagnosed with", "clinical diagnosis", "cognitive type", "mind type"
     ]
 
     func parse(_ text: String) throws -> ExternalAIProfilePayload {
@@ -96,32 +97,39 @@ struct ExternalAIProfileParser {
         guard !trimmed.isEmpty else { throw ExternalAIValidationError.empty }
         guard trimmed.utf8.count <= maximumBytes else { throw ExternalAIValidationError.tooLarge }
         guard let data = trimmed.data(using: .utf8),
-              let payload = try? JSONDecoder().decode(ExternalAIProfilePayload.self, from: data) else {
+              let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw ExternalAIValidationError.invalidJSON
         }
-        guard payload.schemaVersion == 1 else { throw ExternalAIValidationError.unsupportedSchema }
-        guard payload.dimensions.count == Self.dimensionNames.count else {
-            throw ExternalAIValidationError.incompleteDimensions
+
+        if let forbidden = firstNumericInferenceField(in: raw) {
+            throw ExternalAIValidationError.numericInference(forbidden)
         }
-        let names = payload.dimensions.map(\.name)
-        guard Set(names).count == names.count else { throw ExternalAIValidationError.duplicateDimensions }
-        if let unknown = names.first(where: { Self.dimensionNames[$0] == nil }) {
-            throw ExternalAIValidationError.unknownDimension(unknown)
+        if let unknown = Set(raw.keys).subtracting(allowedTopLevelFields).sorted().first {
+            throw ExternalAIValidationError.unexpectedField(unknown)
+        }
+        guard (raw["schema_version"] as? NSNumber)?.intValue == 2 else {
+            throw ExternalAIValidationError.unsupportedSchema
+        }
+        guard let payload = try? JSONDecoder().decode(ExternalAIProfilePayload.self, from: data) else {
+            throw ExternalAIValidationError.invalidJSON
+        }
+        guard payload.schemaVersion == 2 else { throw ExternalAIValidationError.unsupportedSchema }
+        guard !payload.selfReport.isEmpty,
+              !payload.observations.isEmpty,
+              !payload.alternativeExplanations.isEmpty,
+              !payload.limitations.isEmpty else {
+            throw ExternalAIValidationError.incompleteEvidence
         }
 
-        let numericValues = payload.dimensions.flatMap { [$0.score, $0.confidence] }
-            + [payload.overallConfidence]
-            + payload.alternativeInterpretations.map(\.confidence)
-        guard numericValues.allSatisfy({ $0.isFinite && (0...1).contains($0) }) else {
-            throw ExternalAIValidationError.outOfRange
-        }
-
-        let requiredText = [payload.selfReportSummary, payload.behavioralSummary]
-            + payload.dimensions.flatMap { [$0.evidenceSummary, $0.counterEvidence] }
-            + payload.alternativeInterpretations.flatMap { [$0.label, $0.reason] }
-            + payload.keyDisagreements
+        let requiredText = payload.selfReport.map(\.statement)
+            + payload.observations.flatMap { [$0.pattern, $0.reason, $0.counterpoint] }
+            + payload.differencesBetweenSelfReportAndObservation
+            + payload.alternativeExplanations
             + payload.limitations
-        guard requiredText.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 800 }) else {
+        guard requiredText.allSatisfy({
+            let value = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !value.isEmpty && value.count <= 800
+        }) else {
             throw ExternalAIValidationError.missingText
         }
 
@@ -131,56 +139,98 @@ struct ExternalAIProfileParser {
         }
         return payload
     }
+
+    private func firstNumericInferenceField(in value: Any) -> String? {
+        if let dictionary = value as? [String: Any] {
+            for key in dictionary.keys.sorted() {
+                if numericInferenceFields.contains(key.lowercased()) { return key }
+                if key != "schema_version", let number = dictionary[key] as? NSNumber,
+                   CFGetTypeID(number) != CFBooleanGetTypeID() {
+                    return key
+                }
+                if let nested = dictionary[key], let found = firstNumericInferenceField(in: nested) {
+                    return found
+                }
+            }
+        } else if let array = value as? [Any] {
+            for item in array {
+                if let found = firstNumericInferenceField(in: item) { return found }
+            }
+        }
+        return nil
+    }
+}
+
+struct QualitativeEvidenceRecord: Codable, Hashable, Identifiable {
+    let id: String
+    let source: EvidenceSource
+    let timestamp: Date
+    let category: EvidenceCategory
+    let statement: String
+    let strength: EvidenceStrength
+    let reason: String?
+    let counterpoint: String?
+    let userApprovedNote: String?
+}
+
+struct ExternalEvidenceBundle: Codable, Hashable {
+    let provider: AIProvider
+    let records: [QualitativeEvidenceRecord]
+    let differences: [String]
+    let alternativeExplanations: [String]
+    let limitations: [String]
+    let approvedAt: Date
+
+    var selfReports: [QualitativeEvidenceRecord] {
+        records.filter { $0.category == .selfReport }
+    }
+
+    var observations: [QualitativeEvidenceRecord] {
+        records.filter { $0.category == .behavioralObservation }
+    }
 }
 
 enum ExternalEvidenceConverter {
-    static func signals(
+    static func bundle(
         from payload: ExternalAIProfilePayload,
         provider: AIProvider,
         approvedAt: Date,
         userNote: String?
-    ) -> [ObservedSignal] {
-        payload.dimensions.flatMap { item -> [ObservedSignal] in
-            guard let dimension = ExternalAIProfileParser.dimensionNames[item.name] else { return [] }
-            let confidence = item.confidence * payload.overallConfidence
-            let direction = item.score * 2 - 1
-            var result = [
-                ObservedSignal(
-                    id: "external.\(provider.rawValue).\(item.name).primary",
-                    source: .externalAI(provider: provider),
-                    questionID: "external.\(item.name)",
-                    dimension: dimension,
-                    direction: direction,
-                    weight: 1,
-                    summary: item.evidenceSummary,
-                    confidence: confidence,
-                    timestamp: approvedAt,
-                    category: .behavioralObservation,
-                    userApprovedNote: userNote
-                )
-            ]
-            let counter = item.counterEvidence.trimmingCharacters(in: .whitespacesAndNewlines)
-            let normalizedCounter = counter.lowercased()
-            if !counter.isEmpty,
-               !normalizedCounter.hasPrefix("none"),
-               !normalizedCounter.contains("insufficient evidence") {
-                result.append(
-                    ObservedSignal(
-                        id: "external.\(provider.rawValue).\(item.name).counter",
-                        source: .externalAI(provider: provider),
-                        questionID: "external.\(item.name).counter",
-                        dimension: dimension,
-                        direction: direction == 0 ? 0 : -direction,
-                        weight: 0.25,
-                        summary: "Counter-evidence: \(counter)",
-                        confidence: confidence,
-                        timestamp: approvedAt,
-                        category: .behavioralObservation,
-                        userApprovedNote: userNote
-                    )
-                )
-            }
-            return result
+    ) -> ExternalEvidenceBundle {
+        let source = EvidenceSource.externalAI(provider: provider)
+        let selfReports = payload.selfReport.enumerated().map { index, item in
+            QualitativeEvidenceRecord(
+                id: "external.\(provider.rawValue).self-report.\(index)",
+                source: source,
+                timestamp: approvedAt,
+                category: .selfReport,
+                statement: item.statement,
+                strength: item.evidenceStrength,
+                reason: nil,
+                counterpoint: nil,
+                userApprovedNote: userNote
+            )
         }
+        let observations = payload.observations.enumerated().map { index, item in
+            QualitativeEvidenceRecord(
+                id: "external.\(provider.rawValue).observation.\(index)",
+                source: source,
+                timestamp: approvedAt,
+                category: .behavioralObservation,
+                statement: item.pattern,
+                strength: item.evidenceStrength,
+                reason: item.reason,
+                counterpoint: item.counterpoint,
+                userApprovedNote: userNote
+            )
+        }
+        return ExternalEvidenceBundle(
+            provider: provider,
+            records: selfReports + observations,
+            differences: payload.differencesBetweenSelfReportAndObservation,
+            alternativeExplanations: payload.alternativeExplanations,
+            limitations: payload.limitations,
+            approvedAt: approvedAt
+        )
     }
 }

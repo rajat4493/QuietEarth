@@ -1,79 +1,56 @@
-# Design System — Quiet Instrument, Not Generic AI
+# Design System — Sunlit Calm
 
-## Design inspiration translated, not copied
-Borrow interaction lessons only:
-- Calm: immediate serenity and low cognitive load.
-- Headspace: meditation feels approachable rather than mystical or intimidating.
-- Balance: personalization is part of the daily product loop, not a settings checkbox.
-- Waking Up: intellectual seriousness, strong typography, and room for theory/explanation.
+## Product feeling
+QuietEarth is a clear, optimistic instrument for noticing attention. It should feel calm without becoming beige, solemn, clinical, or monastic. Borrow the energetic clarity, expressive content, and approachable motion associated with Gentler Streak, while keeping QuietEarth’s layouts, illustration, palette, and language original.
 
-Do NOT copy their illustrations, layouts, photography, icons, brand colors, copy, or trade dress.
-
-## Original visual concept
-`Quiet Earth / Inner Field`
-
-The product should feel like a premium field notebook for attention: calm, warm, grounded, precise.
-
-Avoid generic AI aesthetics:
-- no electric violet/blue gradients
-- no glowing neural networks
-- no glassmorphism
-- no chat bubbles as primary UI
-- no sparkles
-- no “AI magic” iconography
-
-Avoid generic meditation clichés:
-- no stock yogis
-- no lotus logo by default
-- no mountain-lake hero photography
-- no chakras
-- no incense/pebbles
+Apple’s platform guidance reinforces the split used here: navigation and controls remain familiar iOS UI; the content layer carries brand through color, organic visuals, and motion.
 
 ## Palette
-Background / Rice Paper: `#F4F0E7`
-Primary Ink: `#252A26`
-Neem: `#5E6E5B`
-Clay: `#B7795E`
-Muted Saffron accent: `#D39A45`
-Mist: `#DDE2D7`
-Dark mode base: `#161A17`
-Dark mode surface: `#212722`
+- Sunlit Ivory / app background: `#FFF9EF`
+- Near White / cards: `#FFFEFA`
+- Deep Spruce / primary ink and actions: `#173D35`
+- Sea Glass / secondary accent: `#72B6A2`
+- Mint Wash / supporting surface: `#DDF2E8`
+- Muted Coral / warmth and disagreement: `#F18468`
+- Sunlight Yellow / focal highlight: `#F5D66F`
+- Dark base: `#10241F`
+- Dark surface: `#19332C`
 
-Use accent colors sparingly. Most screens should be warm neutral + ink + one botanical accent.
+Color should make the experience feel awake. Use coral and yellow as purposeful highlights, not confetti. Text contrast and validation meaning take priority.
 
-## Visual motif
-Use thin concentric contour/ripple lines that gently shift between screens. They represent attention wandering and returning.
+## Hero motif
+The primary visual is an original **attention path**: a sea-glass route that wanders, crosses warm sun/coral moments, and returns. It is bolder than the old background contour field and belongs in the content hierarchy rather than acting as wallpaper.
 
-The motif can evolve:
-- onboarding: wide irregular loops
-- profile: overlapping paths
-- practice: loops gradually align
-- completion: one calm continuous contour
+It may evolve later from wandering to steadier paths as practice evidence accumulates. It never represents a score or promise.
 
-This is not a score or promise of enlightenment; it is a visual metaphor only.
+## Surfaces and layout
+- generous whitespace and 24pt outer margins;
+- near-white cards with subtle spruce/sea-glass outlines;
+- 18–24pt continuous corners, without turning every element into a pill;
+- one primary decision per screen;
+- 44pt+ touch targets;
+- little or no shadow;
+- avoid large muddy tinted blocks and dense dashboard composition.
 
 ## Typography
-Use Apple system typography first (SF Pro / New York where appropriate) to remain native and avoid licensing problems.
-- Large editorial serif only for short reflective headings via `New York` if available.
-- SF Pro for all functional text.
-
-## Layout
-- generous margins
-- 1 primary decision per screen
-- 44pt+ touch targets
-- cards with subtle material-free solid surfaces
-- rounded corners 18–24pt, but not pill-everything
-- very little shadow
-- use line, spacing, and typography instead of excessive containers
+Use Apple system typography for accessibility and platform fit. Editorial serif is reserved for short reflective headings; functional content uses the default system design.
 
 ## Motion
-Slow, purposeful, 200–500ms.
-No bouncing gamification.
-Breathing/ripple animation should respect Reduce Motion.
+Use short spring or flowing-path motion to emphasize hierarchy and make the app feel alive. Motion must remain subtle, performant, and disabled or reduced when Reduce Motion is enabled. No bouncing streak mechanics or reward theatrics.
 
-## Tone
-Calm, curious, non-authoritarian.
+## Voice and evidence display
+Calm, curious, and non-authoritarian.
+
 Prefer: `Here’s what we think so far.`
 Avoid: `Your true mind type is…`
-Prefer: `We found evidence both for and against this.`
-Avoid: `AI detected your cognitive style.`
+
+Prefer: `These views differ.`
+Avoid: `Your focus score is 62%.`
+
+Use qualitative bands and evidence-strength labels. Do not use progress bars, probabilities, or percentages for attention dimensions.
+
+## Avoided visual codes
+- stock yogis, lotus marks, chakras, incense, pebbles, or mountain-lake photography;
+- electric AI gradients, glowing networks, sparkles, or chat bubbles as the product frame;
+- therapy/diagnostic dashboards;
+- imitating another product’s characters, illustrations, layouts, or trade dress.

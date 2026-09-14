@@ -64,8 +64,7 @@ private struct EditAnswerView: View {
                 .foregroundStyle(Color.quietInk)
                 .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
                 .padding(.horizontal, QuietSpacing.standard)
-                .background(Color.quietMist)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .quietCard()
             }
             Spacer()
         }
