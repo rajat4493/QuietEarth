@@ -48,27 +48,42 @@ final class StoredAttentionProfile {
 
 @Model
 final class StoredExternalAIProfile {
-    var providerRawValue: String
-    var payloadData: Data
-    var approvedAt: Date
+    var providerRawValue: String = AIProvider.other.rawValue
+    var payloadData: Data = Data()
+    var observationsData: Data = Data()
+    var schemaVersion: Int = 2
+    var approvedAt: Date = Date.distantPast
     var userNote: String?
 
     init(
         provider: AIProvider,
-        payload: ExternalAIProfilePayload,
+        payload: ExternalAIPayload,
+        observations: [ExternalObservation],
         approvedAt: Date = .now,
         userNote: String? = nil
     ) {
         self.providerRawValue = provider.rawValue
         self.payloadData = (try? JSONEncoder().encode(payload)) ?? Data()
+        self.observationsData = (try? JSONEncoder().encode(observations)) ?? Data()
+        self.schemaVersion = payload.schemaVersion
         self.approvedAt = approvedAt
         self.userNote = userNote
     }
 
     var provider: AIProvider { AIProvider(rawValue: providerRawValue) ?? .other }
-    var payload: ExternalAIProfilePayload? {
-        try? JSONDecoder().decode(ExternalAIProfilePayload.self, from: payloadData)
+
+    var payload: ExternalAIPayload? {
+        try? JSONDecoder().decode(ExternalAIPayload.self, from: payloadData)
     }
+
+    var observations: [ExternalObservation] {
+        get { (try? JSONDecoder().decode([ExternalObservation].self, from: observationsData)) ?? [] }
+        set { observationsData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
+
+    /// Superseded schema-v1 records are deleted, never migrated: converting old
+    /// scores into synthetic observations would manufacture the evidence M1.6 removed.
+    var isSuperseded: Bool { schemaVersion != 2 || payload == nil }
 }
 
 @MainActor
@@ -96,20 +111,37 @@ enum QuestionnairePersistence {
 
     static func saveExternalProfile(
         provider: AIProvider,
-        payload: ExternalAIProfilePayload,
+        payload: ExternalAIPayload,
+        observations: [ExternalObservation],
         userNote: String?,
         in context: ModelContext
     ) {
-        if let existing = try? context.fetch(FetchDescriptor<StoredExternalAIProfile>()).first {
-            existing.providerRawValue = provider.rawValue
-            existing.payloadData = (try? JSONEncoder().encode(payload)) ?? Data()
-            existing.approvedAt = .now
-            existing.userNote = userNote
-        } else {
-            context.insert(StoredExternalAIProfile(provider: provider, payload: payload, userNote: userNote))
+        if let records = try? context.fetch(FetchDescriptor<StoredExternalAIProfile>()) {
+            records.forEach(context.delete)
         }
+        context.insert(
+            StoredExternalAIProfile(
+                provider: provider,
+                payload: payload,
+                observations: observations,
+                userNote: userNote
+            )
+        )
         try? context.save()
         rebuildProfile(in: context)
+    }
+
+    /// Discards any stored schema-v1 external evidence. Returns true when a
+    /// record was dropped, so the UI can tell the user to add AI evidence again.
+    @discardableResult
+    static func discardSupersededExternalProfiles(in context: ModelContext) -> Bool {
+        guard let records = try? context.fetch(FetchDescriptor<StoredExternalAIProfile>()) else { return false }
+        let superseded = records.filter(\.isSuperseded)
+        guard !superseded.isEmpty else { return false }
+        superseded.forEach(context.delete)
+        try? context.save()
+        rebuildProfile(in: context)
+        return true
     }
 
     static func removeExternalProfile(in context: ModelContext) {
@@ -123,25 +155,28 @@ enum QuestionnairePersistence {
     static func rebuildProfile(in context: ModelContext) {
         let answers = (try? context.fetch(FetchDescriptor<QuestionnaireSession>()).first?.answers) ?? []
         let externalRecords = (try? context.fetch(FetchDescriptor<StoredExternalAIProfile>())) ?? []
-        let external = externalRecords.first
-        let payload = external?.payload
-        let signals: [ObservedSignal]
-        if let record = external, let payload = record.payload {
-            signals = ExternalEvidenceConverter.signals(
-                from: payload,
-                provider: record.provider,
-                approvedAt: record.approvedAt,
-                userNote: record.userNote
-            )
-        } else {
-            signals = []
-        }
+        let external = externalRecords.first { !$0.isSuperseded }
         let profile = ProfileEngine().makeProfile(
             from: answers,
-            additionalSignals: signals,
-            externalPayload: payload
+            observations: external?.observations ?? [],
+            payload: external?.payload
         )
         saveProfile(profile, in: context)
+    }
+
+    /// Re-files one observation under a different theme, then recomputes.
+    static func updateObservationTheme(
+        observationID: String,
+        theme: AttentionTheme?,
+        in context: ModelContext
+    ) {
+        guard let record = try? context.fetch(FetchDescriptor<StoredExternalAIProfile>()).first else { return }
+        var observations = record.observations
+        guard let index = observations.firstIndex(where: { $0.id == observationID }) else { return }
+        observations[index].theme = theme
+        record.observations = observations
+        try? context.save()
+        rebuildProfile(in: context)
     }
 
     static func update(

@@ -8,9 +8,15 @@ struct AppRootView: View {
     @Query private var externalProfiles: [StoredExternalAIProfile]
     @State private var path: [AppRoute] = []
     @State private var didHandleLaunchArguments = false
+    @State private var didDiscardSupersededEvidence = false
 
     private var currentProfile: AttentionProfile? {
         storedProfiles.first?.profile
+    }
+
+    /// Schema-v1 records are superseded and never counted as evidence.
+    private var hasExternalEvidence: Bool {
+        externalProfiles.contains { !$0.isSuperseded }
     }
 
     private var hasQuestionnaireProgress: Bool {
@@ -25,7 +31,7 @@ struct AppRootView: View {
                     ProfileView(
                         profile: currentProfile,
                         hasQuestionnaireEvidence: sessions.first?.isComplete == true,
-                        hasExternalEvidence: !externalProfiles.isEmpty,
+                        hasExternalEvidence: hasExternalEvidence,
                         onQuestionnaire: { path.append(.questionnaire) },
                         onUseAI: { path.append(.externalAIIntake) }
                     )
@@ -72,6 +78,13 @@ struct AppRootView: View {
             if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") {
                 resetLocalTestData()
             }
+            didDiscardSupersededEvidence = QuestionnairePersistence
+                .discardSupersededExternalProfiles(in: modelContext)
+        }
+        .alert("AI evidence needs to be added again", isPresented: $didDiscardSupersededEvidence) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The analysis prompt changed: assistants now describe what they observe instead of scoring you. The evidence stored under the old format was removed rather than converted, so nothing invented a result. Your questionnaire answers are unchanged.")
         }
     }
 

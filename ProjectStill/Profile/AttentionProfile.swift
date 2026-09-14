@@ -203,12 +203,11 @@ enum EvidenceRelationship: String, Codable, Hashable {
     case singleSource
 }
 
+/// Compares statements, not scores. There is no external number to compare.
 struct SourceComparison: Codable, Hashable, Identifiable {
-    var id: AttentionDimension { dimension }
-    let dimension: AttentionDimension
+    var id: AttentionTheme { theme }
+    let theme: AttentionTheme
     let relationship: EvidenceRelationship
-    let questionnaireScore: Double?
-    let externalAIScore: Double?
     let questionnaireEvidence: [String]
     let externalAIEvidence: [String]
 }
@@ -216,31 +215,80 @@ struct SourceComparison: Codable, Hashable, Identifiable {
 struct AttentionProfile: Codable, Hashable {
     let dimensions: [DimensionAssessment]
     let interpretation: ProfileInterpretation
+    /// Internal routing value. Never rendered — see `overallStrength`.
     let overallConfidence: Double
     let updatedAt: Date
+    let observations: [ExternalObservation]
+    let hypotheses: [WorkingHypothesis]
     let sourceComparisons: [SourceComparison]?
     let alternativeInterpretations: [String]?
-    let externalSelfReportSummary: String?
-    let externalBehavioralSummary: String?
+    let externalSelfReportStatements: [String]
+    let externalDifferences: [String]
+    let externalLimitations: [String]
+
+    /// What the user is shown: a word on a four-step scale, never a percentage.
+    var overallStrength: EvidenceStrength {
+        .fromInternalConfidence(overallConfidence)
+    }
+
+    var hasExternalEvidence: Bool { !observations.isEmpty }
+
+    /// Hypotheses in test-first order; contested claims come first.
+    var testableHypotheses: [WorkingHypothesis] {
+        hypotheses.filter { $0.supportState.drivesPractice }
+    }
+
+    var unsupportedObservations: [ExternalObservation] {
+        observations.filter { !$0.strength.supportsHypothesis || $0.theme == nil }
+    }
 
     init(
         dimensions: [DimensionAssessment],
         interpretation: ProfileInterpretation,
         overallConfidence: Double,
         updatedAt: Date,
+        observations: [ExternalObservation] = [],
+        hypotheses: [WorkingHypothesis] = [],
         sourceComparisons: [SourceComparison]? = nil,
         alternativeInterpretations: [String]? = nil,
-        externalSelfReportSummary: String? = nil,
-        externalBehavioralSummary: String? = nil
+        externalSelfReportStatements: [String] = [],
+        externalDifferences: [String] = [],
+        externalLimitations: [String] = []
     ) {
         self.dimensions = dimensions
         self.interpretation = interpretation
         self.overallConfidence = overallConfidence
         self.updatedAt = updatedAt
+        self.observations = observations
+        self.hypotheses = hypotheses
         self.sourceComparisons = sourceComparisons
         self.alternativeInterpretations = alternativeInterpretations
-        self.externalSelfReportSummary = externalSelfReportSummary
-        self.externalBehavioralSummary = externalBehavioralSummary
+        self.externalSelfReportStatements = externalSelfReportStatements
+        self.externalDifferences = externalDifferences
+        self.externalLimitations = externalLimitations
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case dimensions, interpretation, overallConfidence, updatedAt
+        case observations, hypotheses, sourceComparisons, alternativeInterpretations
+        case externalSelfReportStatements, externalDifferences, externalLimitations
+    }
+
+    /// M1 profiles decode with the M1.6 fields empty. Superseded schema-v1
+    /// external fields are ignored rather than migrated.
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        dimensions = try values.decode([DimensionAssessment].self, forKey: .dimensions)
+        interpretation = try values.decode(ProfileInterpretation.self, forKey: .interpretation)
+        overallConfidence = try values.decode(Double.self, forKey: .overallConfidence)
+        updatedAt = try values.decode(Date.self, forKey: .updatedAt)
+        observations = try values.decodeIfPresent([ExternalObservation].self, forKey: .observations) ?? []
+        hypotheses = try values.decodeIfPresent([WorkingHypothesis].self, forKey: .hypotheses) ?? []
+        sourceComparisons = try values.decodeIfPresent([SourceComparison].self, forKey: .sourceComparisons)
+        alternativeInterpretations = try values.decodeIfPresent([String].self, forKey: .alternativeInterpretations)
+        externalSelfReportStatements = try values.decodeIfPresent([String].self, forKey: .externalSelfReportStatements) ?? []
+        externalDifferences = try values.decodeIfPresent([String].self, forKey: .externalDifferences) ?? []
+        externalLimitations = try values.decodeIfPresent([String].self, forKey: .externalLimitations) ?? []
     }
 
     func assessment(for dimension: AttentionDimension) -> DimensionAssessment {

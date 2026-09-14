@@ -1,5 +1,19 @@
 # M2 External AI Schema, Privacy, and Reconciliation
 
+> **SUPERSEDED at M1.6 — retained as history, not as specification.**
+>
+> Schema version 1 asked an external assistant to rate ten named attention constructs on `0...1` with
+> a confidence decimal each. That request had the form of a cognitive screening instrument, and the
+> numbers it returned were impressions rendered as measurements. Everything below that depends on
+> AI-derived numeric scoring — the dimension scores, `overall_confidence`, the numeric signal
+> conversion, the counter-evidence weighting, and the `0.18` reconciliation threshold — is withdrawn.
+>
+> The current specification is `duck/m1_6_inference_and_visual_reset.md`, with the prompt in
+> `product/ASK_YOUR_AI_PROMPT.md`. What survives from this document, re-expressed qualitatively: the
+> provenance model, the privacy and data-minimization rules, the user-approval boundary, the
+> independent treatment of the two views before combination, the "How the two views compare" screen,
+> the capacity/gating case (now a hypothesis with a stated disconfirmation), and reversible deletion.
+
 ## Scope boundary
 M2 accepts a user-reviewed behavioral profile created in ChatGPT, Claude, or another assistant. The app never contacts an AI provider, signs into an account, reads chat history, or uploads text. Raw chat export, meditation recommendations, Sanskrit mapping, audio, analytics, cloud storage, and diagnosis remain out of scope.
 

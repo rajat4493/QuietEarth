@@ -21,7 +21,7 @@ struct ExternalAIIntakeView: View {
                     .foregroundStyle(Color.quietInk)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("Your conversations stay with your AI provider. Copy our prompt there, review its JSON result, then paste only that result here.")
+                Text("Your conversations stay with your AI provider. The prompt asks it to describe what it can observe — not to score or assess you. Review the result, then paste only that here.")
                     .font(.quietBody)
                     .foregroundStyle(Color.quietInk.opacity(0.72))
 
@@ -33,7 +33,7 @@ struct ExternalAIIntakeView: View {
                 .pickerStyle(.segmented)
 
                 VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                    Text("1. Copy the analysis prompt")
+                    Text("1. Copy the observation prompt")
                         .font(.quietTitle)
                     ScrollView {
                         Text(ExternalAIPrompt.text)
@@ -44,8 +44,8 @@ struct ExternalAIIntakeView: View {
                     }
                     .frame(height: 180)
                     .padding(QuietSpacing.standard)
-                    .background(Color.quietMist)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .background(Color.quietMintWash)
+                    .clipShape(RoundedRectangle(cornerRadius: QuietRadius.control, style: .continuous))
 
                     Button(copied ? "Prompt copied" : "Copy prompt") {
                         UIPasteboard.general.string = ExternalAIPrompt.text
@@ -64,13 +64,13 @@ struct ExternalAIIntakeView: View {
                         .frame(minHeight: 220)
                         .padding(QuietSpacing.compact)
                         .scrollContentBackground(.hidden)
-                        .background(Color.quietMist)
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .background(Color.quietMintWash)
+                        .clipShape(RoundedRectangle(cornerRadius: QuietRadius.control, style: .continuous))
                         .overlay(alignment: .topLeading) {
                             if pastedText.isEmpty {
                                 Text("Paste JSON only")
                                     .font(.body)
-                                    .foregroundStyle(Color.quietInk.opacity(0.42))
+                                    .foregroundStyle(Color.quietSecondaryInk.opacity(0.7))
                                     .padding(QuietSpacing.standard)
                                     .allowsHitTesting(false)
                             }
@@ -103,9 +103,9 @@ struct ExternalAIIntakeView: View {
                 .disabled(pastedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("externalAI.review")
 
-                Text("Nothing is sent from this app. The pasted buffer is stored only after you approve the normalized preview.")
+                Text("Nothing is sent from this app. Results containing scores, ratings, or diagnostic language are rejected before anything is stored.")
                     .font(.footnote)
-                    .foregroundStyle(Color.quietInk.opacity(0.58))
+                    .foregroundStyle(Color.quietSecondaryInk)
             }
             .padding(QuietSpacing.generous)
         }
@@ -116,7 +116,7 @@ struct ExternalAIIntakeView: View {
             ExternalAIProfilePreviewView(
                 payload: selection.payload,
                 provider: provider,
-                onApprove: { approve(selection.payload) }
+                onApprove: { observations in approve(selection.payload, observations) }
             )
         }
     }
@@ -132,11 +132,25 @@ struct ExternalAIIntakeView: View {
         }
     }
 
-    private func approve(_ parsedProfile: ExternalAIProfilePayload) {
+    private func approve(_ parsedProfile: ExternalAIPayload, _ observations: [ExternalObservation]) {
+        let note = userNote.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         QuestionnairePersistence.saveExternalProfile(
             provider: provider,
             payload: parsedProfile,
-            userNote: userNote.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+            observations: observations.map {
+                ExternalObservation(
+                    id: $0.id,
+                    pattern: $0.pattern,
+                    reason: $0.reason,
+                    counterpoint: $0.counterpoint,
+                    strength: $0.strength,
+                    theme: $0.theme,
+                    provider: $0.provider,
+                    approvedAt: $0.approvedAt,
+                    userApprovedNote: note
+                )
+            },
+            userNote: note,
             in: modelContext
         )
         previewSelection = nil
@@ -146,7 +160,7 @@ struct ExternalAIIntakeView: View {
 
 private struct ExternalAIPreviewSelection: Identifiable {
     let id = UUID()
-    let payload: ExternalAIProfilePayload
+    let payload: ExternalAIPayload
 }
 
 private extension String {

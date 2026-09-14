@@ -1,5 +1,12 @@
 # M1 Questionnaire and Scoring Model
 
+> **M1.6 amendment.** The `0...1` scores and confidence values defined here remain, because
+> deterministic routing to practice templates needs a stable ordering. They are **internal product
+> mechanics**: never rendered, never exported, never spoken in copy, and never described to the user
+> as a measurement. User-facing explanation is in evidence statements and ordinal strength words.
+> External AI evidence no longer produces scores at all. See
+> `duck/m1_6_inference_and_visual_reset.md`.
+
 ## Scope
 M1 converts a local questionnaire into an explainable provisional attention profile. It does not use an LLM, import conversation history, diagnose a condition, or recommend meditation.
 

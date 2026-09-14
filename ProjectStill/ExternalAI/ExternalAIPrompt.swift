@@ -1,38 +1,62 @@
 import Foundation
 
 enum ExternalAIPrompt {
+    /// Schema version 2 (M1.6). Asks for observable conversational behaviour
+    /// with ordinal evidence strength. It never asks the assistant to rate,
+    /// score, or assess the user.
     static let text = #"""
-Analyze my conversational behavior specifically for how my attention appears to operate. Do not treat my own self-description as ground truth.
+Look across our conversations and describe observable patterns in how I interact with you.
 
-Separate what I explicitly say about myself from behavioral patterns observable across conversations. For each conclusion, look for counter-evidence, alternative explanations, and limitations.
+Do not diagnose or assess my mental health, cognition, attention disorder, personality, or any medical or psychiatric condition.
 
-Assess only these dimensions: attentional switching, focus persistence, associative branching, disengagement difficulty, novelty dependence, emotional capture, energy/dullness (higher means more dull or low-energy), low-stimulation tolerance, metacognitive noticing, and sensory orientation.
+Do not assign numerical scores, probabilities, percentiles, clinical labels, or psychometric-style ratings.
 
-Do not diagnose ADHD, anxiety, depression, autism, personality disorders, or any medical or psychiatric condition. Do not infer unrelated sensitive attributes. Do not quote private messages, names, employers, account details, or secrets. If evidence is weak, say “insufficient evidence.”
+Do not assume that what I say about myself is necessarily accurate. Keep my self-description separate from patterns you can actually observe in our conversations.
 
-Return ONLY valid JSON matching this structure, with every dimension exactly once and all scores/confidence values between 0 and 1:
+Focus only on conversational behavior that you can reasonably observe, such as:
+
+* whether I tend to stay with one topic or open related branches
+* whether I return to earlier ideas after exploring something else
+* whether some subjects produce much deeper or longer engagement than others
+* whether I frequently ask to compress, simplify, expand, challenge, or reframe information
+* whether I revisit conclusions after they appear settled
+* whether I make connections between apparently separate subjects
+* whether my interaction style seems different depending on the type of task
+* how often I notice and question my own assumptions or your interpretation of me
+
+For each observation:
+
+1. State the observable pattern.
+2. Explain briefly what in the conversational behavior supports it, without quoting private messages.
+3. Give any meaningful counter-example or alternative explanation.
+4. Mark the evidence as one of:
+   * strong
+   * moderate
+   * weak
+   * insufficient
+
+Do not infer anything that cannot reasonably be observed from conversation.
+
+Do not include names, employers, private facts, account information, health information, financial information, relationships, or unrelated sensitive details.
+
+Return valid JSON only in this structure:
 
 {
-  "schema_version": 1,
-  "self_report_summary": "...",
-  "behavioral_summary": "...",
-  "dimensions": [
-    {"name":"attentional_switching","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"focus_persistence","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"associative_branching","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"disengagement_difficulty","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"novelty_dependence","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"emotional_capture","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"energy_dullness","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"low_stimulation_tolerance","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"metacognitive_noticing","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."},
-    {"name":"sensory_orientation","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."}
+  "schema_version": 2,
+  "self_report": [
+    { "statement": "...", "evidence_strength": "strong|moderate|weak|insufficient" }
   ],
-  "key_disagreements": ["..."],
-  "alternative_interpretations": [{"label":"...","confidence":0.0,"reason":"..."}],
-  "overall_confidence": 0.0,
+  "observations": [
+    {
+      "pattern": "...",
+      "evidence_strength": "strong|moderate|weak|insufficient",
+      "reason": "...",
+      "counterpoint": "..."
+    }
+  ],
+  "differences_between_self_report_and_observation": ["..."],
+  "alternative_explanations": ["..."],
   "limitations": ["..."]
 }
 """#
 }
-

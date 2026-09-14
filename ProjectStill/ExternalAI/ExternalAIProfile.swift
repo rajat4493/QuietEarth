@@ -1,45 +1,90 @@
 import Foundation
 
-struct ExternalAIProfilePayload: Codable, Hashable {
+// Schema version 2 (M1.6). External assistants describe observable
+// conversational behaviour. They return no numbers, and nothing here converts
+// their text into a score.
+
+struct ExternalAIPayload: Codable, Hashable {
     let schemaVersion: Int
-    let selfReportSummary: String
-    let behavioralSummary: String
-    let dimensions: [ExternalAIDimension]
-    let keyDisagreements: [String]
-    let alternativeInterpretations: [ExternalAIAlternative]
-    let overallConfidence: Double
+    let selfReport: [ExternalAISelfReport]
+    let observations: [ExternalAIObservation]
+    let differences: [String]
+    let alternativeExplanations: [String]
     let limitations: [String]
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion = "schema_version"
-        case selfReportSummary = "self_report_summary"
-        case behavioralSummary = "behavioral_summary"
-        case dimensions
-        case keyDisagreements = "key_disagreements"
-        case alternativeInterpretations = "alternative_interpretations"
-        case overallConfidence = "overall_confidence"
+        case selfReport = "self_report"
+        case observations
+        case differences = "differences_between_self_report_and_observation"
+        case alternativeExplanations = "alternative_explanations"
         case limitations
     }
-}
 
-struct ExternalAIDimension: Codable, Hashable {
-    let name: String
-    let score: Double
-    let confidence: Double
-    let evidenceSummary: String
-    let counterEvidence: String
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try values.decode(Int.self, forKey: .schemaVersion)
+        selfReport = try values.decodeIfPresent([ExternalAISelfReport].self, forKey: .selfReport) ?? []
+        observations = try values.decodeIfPresent([ExternalAIObservation].self, forKey: .observations) ?? []
+        differences = try values.decodeIfPresent([String].self, forKey: .differences) ?? []
+        alternativeExplanations = try values.decodeIfPresent([String].self, forKey: .alternativeExplanations) ?? []
+        limitations = try values.decodeIfPresent([String].self, forKey: .limitations) ?? []
+    }
 
-    private enum CodingKeys: String, CodingKey {
-        case name, score, confidence
-        case evidenceSummary = "evidence_summary"
-        case counterEvidence = "counter_evidence"
+    init(
+        schemaVersion: Int = 2,
+        selfReport: [ExternalAISelfReport] = [],
+        observations: [ExternalAIObservation] = [],
+        differences: [String] = [],
+        alternativeExplanations: [String] = [],
+        limitations: [String] = []
+    ) {
+        self.schemaVersion = schemaVersion
+        self.selfReport = selfReport
+        self.observations = observations
+        self.differences = differences
+        self.alternativeExplanations = alternativeExplanations
+        self.limitations = limitations
     }
 }
 
-struct ExternalAIAlternative: Codable, Hashable {
-    let label: String
-    let confidence: Double
+struct ExternalAISelfReport: Codable, Hashable {
+    let statement: String
+    let evidenceStrength: EvidenceStrength
+
+    private enum CodingKeys: String, CodingKey {
+        case statement
+        case evidenceStrength = "evidence_strength"
+    }
+}
+
+struct ExternalAIObservation: Codable, Hashable {
+    let pattern: String
+    let evidenceStrength: EvidenceStrength
     let reason: String
+    let counterpoint: String
+
+    private enum CodingKeys: String, CodingKey {
+        case pattern
+        case evidenceStrength = "evidence_strength"
+        case reason
+        case counterpoint
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        pattern = try values.decode(String.self, forKey: .pattern)
+        evidenceStrength = try values.decode(EvidenceStrength.self, forKey: .evidenceStrength)
+        reason = try values.decode(String.self, forKey: .reason)
+        counterpoint = try values.decodeIfPresent(String.self, forKey: .counterpoint) ?? ""
+    }
+
+    init(pattern: String, evidenceStrength: EvidenceStrength, reason: String, counterpoint: String) {
+        self.pattern = pattern
+        self.evidenceStrength = evidenceStrength
+        self.reason = reason
+        self.counterpoint = counterpoint
+    }
 }
 
 enum ExternalAIValidationError: Error, Equatable, LocalizedError {
@@ -47,140 +92,204 @@ enum ExternalAIValidationError: Error, Equatable, LocalizedError {
     case tooLarge
     case invalidJSON
     case unsupportedSchema
-    case incompleteDimensions
-    case duplicateDimensions
-    case unknownDimension(String)
-    case outOfRange
+    case noObservations
+    case tooManyEntries
+    case invalidStrength
     case missingText
+    case numericScore(String)
     case unsafeLanguage(String)
 
     var errorDescription: String? {
         switch self {
-        case .empty: "Paste the JSON profile first."
-        case .tooLarge: "This result is larger than the supported 40 KB profile limit."
-        case .invalidJSON: "This is not valid profile JSON. Ask your AI to return only the requested JSON."
-        case .unsupportedSchema: "This profile uses an unsupported schema version. Copy the current prompt and try again."
-        case .incompleteDimensions: "The profile must contain every requested attention dimension exactly once."
-        case .duplicateDimensions: "The profile contains the same dimension more than once."
-        case .unknownDimension(let name): "The profile contains an unknown dimension: \(name)."
-        case .outOfRange: "Every score and confidence value must be between 0 and 1."
-        case .missingText: "A required evidence or summary field is empty."
-        case .unsafeLanguage(let term): "The result includes diagnostic or unsafe inference language (‘\(term)’). Ask your AI to follow the non-diagnostic prompt."
+        case .empty:
+            "Paste the JSON result first."
+        case .tooLarge:
+            "This result is larger than the supported 40 KB limit."
+        case .invalidJSON:
+            "This is not valid JSON. Ask your AI to return only the requested JSON."
+        case .unsupportedSchema:
+            "This prompt has been replaced. Copy the current prompt and run it again."
+        case .noObservations:
+            "The result contains no observations."
+        case .tooManyEntries:
+            "The result contains more entries than this app accepts (12 per section)."
+        case .invalidStrength:
+            "Evidence strength must be strong, moderate, weak, or insufficient — not a number or a rating."
+        case .missingText:
+            "A required field is empty or longer than 600 characters."
+        case .numericScore(let found):
+            "This result contains a score-like value (‘\(found)’). QuietEarth does not accept numeric ratings of you — ask your AI to describe what it observes instead."
+        case .unsafeLanguage(let term):
+            "The result includes diagnostic or assessment language (‘\(term)’). Ask your AI to follow the prompt exactly."
         }
     }
 }
 
 struct ExternalAIProfileParser {
-    static let dimensionNames: [String: AttentionDimension] = [
-        "attentional_switching": .attentionalSwitching,
-        "focus_persistence": .focusPersistence,
-        "associative_branching": .associativeBranching,
-        "disengagement_difficulty": .disengagementDifficulty,
-        "novelty_dependence": .noveltyDependence,
-        "emotional_capture": .emotionalCapture,
-        "energy_dullness": .energyDullness,
-        "low_stimulation_tolerance": .lowStimulationTolerance,
-        "metacognitive_noticing": .metacognitiveNoticing,
-        "sensory_orientation": .sensoryOrientation
-    ]
-
     private let maximumBytes = 40_000
+    private let maximumEntries = 12
+    private let maximumFieldLength = 600
+
+    /// Diagnostic language, plus the psychometric vocabulary added at M1.6.
     private let unsafeTerms = [
         "adhd", "attention deficit", "anxiety disorder", "depression",
         "autism", "bipolar", "ptsd", "personality disorder", "you have a disorder",
-        "diagnosed with", "clinical diagnosis"
+        "diagnosed with", "clinical diagnosis", "clinically",
+        "percentile", "score of", "rating of", "assessment indicates",
+        "test results", "screening"
     ]
 
-    func parse(_ text: String) throws -> ExternalAIProfilePayload {
+    /// The schema carries no numbers. Numbers smuggled into prose are numbers
+    /// all the same, so they are rejected rather than stripped.
+    private static let numericPatterns = [
+        #"\b\d{1,3}\s?%"#,
+        #"\b0\.\d+\b"#,
+        #"\b\d(?:\.\d+)?\s*/\s*(?:5|7|10|100)\b"#,
+        #"\b(?:top|bottom)\s+\w+\s+(?:percentile|decile|quartile)\b"#
+    ]
+
+    func parse(_ text: String) throws -> ExternalAIPayload {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { throw ExternalAIValidationError.empty }
         guard trimmed.utf8.count <= maximumBytes else { throw ExternalAIValidationError.tooLarge }
-        guard let data = trimmed.data(using: .utf8),
-              let payload = try? JSONDecoder().decode(ExternalAIProfilePayload.self, from: data) else {
+        guard let data = trimmed.data(using: .utf8) else { throw ExternalAIValidationError.invalidJSON }
+
+        let payload: ExternalAIPayload
+        do {
+            payload = try JSONDecoder().decode(ExternalAIPayload.self, from: data)
+        } catch let error as DecodingError {
+            throw Self.validationError(for: error, data: data)
+        } catch {
             throw ExternalAIValidationError.invalidJSON
         }
-        guard payload.schemaVersion == 1 else { throw ExternalAIValidationError.unsupportedSchema }
-        guard payload.dimensions.count == Self.dimensionNames.count else {
-            throw ExternalAIValidationError.incompleteDimensions
-        }
-        let names = payload.dimensions.map(\.name)
-        guard Set(names).count == names.count else { throw ExternalAIValidationError.duplicateDimensions }
-        if let unknown = names.first(where: { Self.dimensionNames[$0] == nil }) {
-            throw ExternalAIValidationError.unknownDimension(unknown)
+
+        guard payload.schemaVersion == 2 else { throw ExternalAIValidationError.unsupportedSchema }
+        guard !payload.observations.isEmpty else { throw ExternalAIValidationError.noObservations }
+        guard payload.observations.count <= maximumEntries,
+              payload.selfReport.count <= maximumEntries,
+              payload.differences.count <= maximumEntries,
+              payload.alternativeExplanations.count <= maximumEntries,
+              payload.limitations.count <= maximumEntries else {
+            throw ExternalAIValidationError.tooManyEntries
         }
 
-        let numericValues = payload.dimensions.flatMap { [$0.score, $0.confidence] }
-            + [payload.overallConfidence]
-            + payload.alternativeInterpretations.map(\.confidence)
-        guard numericValues.allSatisfy({ $0.isFinite && (0...1).contains($0) }) else {
-            throw ExternalAIValidationError.outOfRange
-        }
-
-        let requiredText = [payload.selfReportSummary, payload.behavioralSummary]
-            + payload.dimensions.flatMap { [$0.evidenceSummary, $0.counterEvidence] }
-            + payload.alternativeInterpretations.flatMap { [$0.label, $0.reason] }
-            + payload.keyDisagreements
+        let requiredText = payload.observations.flatMap { [$0.pattern, $0.reason] }
+            + payload.selfReport.map(\.statement)
+            + payload.differences
+            + payload.alternativeExplanations
             + payload.limitations
-        guard requiredText.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 800 }) else {
+        guard requiredText.allSatisfy({
+            let value = $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !value.isEmpty && value.count <= maximumFieldLength
+        }) else {
+            throw ExternalAIValidationError.missingText
+        }
+        guard payload.observations.allSatisfy({ $0.counterpoint.count <= maximumFieldLength }) else {
             throw ExternalAIValidationError.missingText
         }
 
-        let normalized = requiredText.joined(separator: " ").lowercased()
+        let allText = (requiredText + payload.observations.map(\.counterpoint)).joined(separator: " ")
+        if let found = Self.firstNumericScore(in: allText) {
+            throw ExternalAIValidationError.numericScore(found)
+        }
+        let normalized = allText.lowercased()
         if let term = unsafeTerms.first(where: normalized.contains) {
             throw ExternalAIValidationError.unsafeLanguage(term)
         }
         return payload
     }
+
+    static func firstNumericScore(in text: String) -> String? {
+        for pattern in numericPatterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { continue }
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            if let match = regex.firstMatch(in: text, range: range),
+               let matched = Range(match.range, in: text) {
+                return String(text[matched])
+            }
+        }
+        return nil
+    }
+
+    /// An `evidence_strength` that is a number or an unexpected word is the most
+    /// likely decoding failure, so it gets its own message rather than "invalid JSON".
+    private static func validationError(for error: DecodingError, data: Data) -> ExternalAIValidationError {
+        if case .dataCorrupted(let context) = error,
+           context.codingPath.contains(where: { $0.stringValue == "evidence_strength" }) {
+            return .invalidStrength
+        }
+        if case .typeMismatch(_, let context) = error,
+           context.codingPath.contains(where: { $0.stringValue == "evidence_strength" }) {
+            return .invalidStrength
+        }
+        guard let object = try? JSONSerialization.jsonObject(with: data),
+              let root = object as? [String: Any] else {
+            return .invalidJSON
+        }
+        if let version = root["schema_version"] as? Int, version != 2 {
+            return .unsupportedSchema
+        }
+        // The v1 scoring payload: reject it as superseded rather than "malformed".
+        if root["dimensions"] != nil {
+            return .unsupportedSchema
+        }
+        // The likeliest v2 failure is a strength that is a number or an
+        // unexpected word. The coding path is not reliable across decoders, so
+        // the raw value is checked directly.
+        let entries = (root["observations"] as? [[String: Any]] ?? [])
+            + (root["self_report"] as? [[String: Any]] ?? [])
+        let valid = Set(EvidenceStrength.allCases.map(\.rawValue))
+        for entry in entries {
+            guard let raw = entry["evidence_strength"] else { continue }
+            if let text = raw as? String, valid.contains(text) { continue }
+            return .invalidStrength
+        }
+        return .invalidJSON
+    }
 }
 
+/// Converts an approved payload into qualitative records. Nothing here produces
+/// an `ObservedSignal`: external text never enters the questionnaire scoring engine.
 enum ExternalEvidenceConverter {
-    static func signals(
-        from payload: ExternalAIProfilePayload,
+    static func observations(
+        from payload: ExternalAIPayload,
         provider: AIProvider,
         approvedAt: Date,
-        userNote: String?
-    ) -> [ObservedSignal] {
-        payload.dimensions.flatMap { item -> [ObservedSignal] in
-            guard let dimension = ExternalAIProfileParser.dimensionNames[item.name] else { return [] }
-            let confidence = item.confidence * payload.overallConfidence
-            let direction = item.score * 2 - 1
-            var result = [
-                ObservedSignal(
-                    id: "external.\(provider.rawValue).\(item.name).primary",
-                    source: .externalAI(provider: provider),
-                    questionID: "external.\(item.name)",
-                    dimension: dimension,
-                    direction: direction,
-                    weight: 1,
-                    summary: item.evidenceSummary,
-                    confidence: confidence,
-                    timestamp: approvedAt,
-                    category: .behavioralObservation,
-                    userApprovedNote: userNote
-                )
-            ]
-            let counter = item.counterEvidence.trimmingCharacters(in: .whitespacesAndNewlines)
-            let normalizedCounter = counter.lowercased()
-            if !counter.isEmpty,
-               !normalizedCounter.hasPrefix("none"),
-               !normalizedCounter.contains("insufficient evidence") {
-                result.append(
-                    ObservedSignal(
-                        id: "external.\(provider.rawValue).\(item.name).counter",
-                        source: .externalAI(provider: provider),
-                        questionID: "external.\(item.name).counter",
-                        dimension: dimension,
-                        direction: direction == 0 ? 0 : -direction,
-                        weight: 0.25,
-                        summary: "Counter-evidence: \(counter)",
-                        confidence: confidence,
-                        timestamp: approvedAt,
-                        category: .behavioralObservation,
-                        userApprovedNote: userNote
-                    )
-                )
-            }
-            return result
+        themes: [Int: AttentionTheme?] = [:],
+        userNote: String? = nil
+    ) -> [ExternalObservation] {
+        payload.observations.enumerated().map { index, item in
+            ExternalObservation(
+                id: "external.\(provider.rawValue).\(index)",
+                pattern: item.pattern,
+                reason: item.reason,
+                counterpoint: item.counterpoint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? "No counter-example offered."
+                    : item.counterpoint,
+                strength: item.evidenceStrength,
+                theme: themes[index] ?? ExternalObservationFiler.suggestedTheme(for: item.pattern),
+                provider: provider,
+                approvedAt: approvedAt,
+                userApprovedNote: userNote
+            )
         }
+    }
+}
+
+/// Suggests a theme from a small, visible keyword list. The user confirms or
+/// reassigns it — nothing is filed into product logic unconfirmed.
+enum ExternalObservationFiler {
+    static func suggestedTheme(for pattern: String) -> AttentionTheme? {
+        let text = pattern.lowercased()
+        let best = AttentionTheme.allCases
+            .map { theme in (theme, theme.matchKeywords.filter(text.contains).count) }
+            .filter { $0.1 > 0 }
+            .max { $0.1 < $1.1 }
+        return best?.0
+    }
+
+    static func matchedKeywords(for pattern: String, theme: AttentionTheme) -> [String] {
+        let text = pattern.lowercased()
+        return theme.matchKeywords.filter(text.contains)
     }
 }

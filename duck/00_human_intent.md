@@ -19,6 +19,8 @@ After onboarding, the user should be able to say:
 - The app can revise its hypothesis rather than pretending it was always correct.
 
 ## Non-negotiable philosophy
+Do not measure the user's mind with language models. Ask them only to describe observable behaviour, treat those descriptions as hypotheses, and let practice supply the evidence.
+Do not manufacture precision. A number the product did not measure is never shown.
 Do not reduce the user to a permanent personality type.
 Treat attention patterns as hypotheses that can change by context and over time.
 Do not confuse dharana, dhyana, samadhi, mindfulness, therapy, or diagnosis.

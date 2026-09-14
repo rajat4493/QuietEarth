@@ -95,6 +95,26 @@ final class OnboardingFlowUITests: XCTestCase {
 
         let error = app.staticTexts["externalAI.validationError"]
         XCTAssertTrue(error.waitForExistence(timeout: 3))
-        XCTAssertTrue(error.label.contains("not valid profile JSON"))
+        XCTAssertTrue(error.label.contains("not valid JSON"))
+    }
+
+    @MainActor
+    func testNumericScoreInExternalProfileIsRejected() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset"]
+        app.launch()
+        app.buttons["opening.begin"].tap()
+        app.buttons["privacy.externalAI"].tap()
+
+        let editor = app.textViews["externalAI.jsonEditor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 3))
+        editor.tap()
+        // Well-formed schema v2, but it smuggles a score into the prose.
+        editor.typeText(#"{"schema_version":2,"self_report":[],"observations":[{"pattern":"Switches topics in 81% of exchanges.","evidence_strength":"strong","reason":"Seen repeatedly.","counterpoint":""}],"differences_between_self_report_and_observation":[],"alternative_explanations":[],"limitations":[]}"#)
+        app.buttons["externalAI.review"].tap()
+
+        let error = app.staticTexts["externalAI.validationError"]
+        XCTAssertTrue(error.waitForExistence(timeout: 3))
+        XCTAssertTrue(error.label.contains("does not accept numeric ratings"))
     }
 }

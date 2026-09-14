@@ -14,6 +14,27 @@ Use carefully sourced passages/concepts such as:
 - Never say “scientifically proven for you” from in-app data.
 - Never promise trance, enlightenment, hormone changes, trauma resolution, or disease benefit.
 
+## No psychometric presentation (M1.6)
+The product must not look like a measuring instrument, whatever its disclaimers say. Form carries as
+much of the claim as wording does.
+
+- Never ask an external model to rate, score, or assess the user's mind, cognition, attention,
+  personality, or mental health. Ask only for descriptions of observable conversational behaviour.
+- Never display a number attached to a trait, disposition, or capacity — no score, percentage,
+  probability, percentile, confidence decimal, star rating, gauge, meter, or trait-filled progress bar.
+  This applies to AI-derived and questionnaire-derived values alike.
+- Confidence and evidence strength are ordinal words: strong / moderate / weak / insufficient.
+- Numbers are permitted only for things actually counted: sessions completed, day `x` of 7, minutes,
+  dates, and reflection tallies the user themselves reported.
+- Internal questionnaire scores exist for deterministic practice routing only. They are never
+  rendered, exported, spoken in copy, or described as a measurement.
+- Present every profile claim as a hypothesis under test, with a stated way it could be wrong. "We
+  don't have enough evidence for that yet" is a supported outcome, not a failure.
+- Reject pasted results containing diagnostic or psychometric vocabulary, or score-shaped values in
+  prose, before preview or storage.
+
+Rationale and the full numbers policy: `duck/m1_6_inference_and_visual_reset.md`.
+
 ## Breathing safety
 MVP uses only comfortable breathing cues. No forceful pranayama, prolonged retention, hyperventilation, or advanced breathwork.
 

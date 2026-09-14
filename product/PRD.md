@@ -23,9 +23,13 @@ A meditation-curious adult who has tried or considered meditation but is unsure 
 8. Adaptation
 
 ## Evidence inputs
-A. Questionnaire only
-B. Recommended: Ask-your-AI structured persona/attention profile
-C. Experimental: user-selected exported chat file
+A. Questionnaire only — self-report, scored deterministically on-device.
+B. Recommended: Ask-your-AI **structured observation set** — qualitative descriptions of observable
+   conversational behaviour with ordinal evidence strength. No numeric scoring of the user's mind.
+   See `product/ASK_YOUR_AI_PROMPT.md` (schema v2).
+C. Experimental: user-selected exported chat file.
+D. **Practice outcomes** — the only stage that observes behaviour directly, under known conditions,
+   repeatedly. The meditation is the measurement mechanism.
 
 ## Profile dimensions for MVP
 Use dimensions, not fixed types:
@@ -40,10 +44,28 @@ Use dimensions, not fixed types:
 - metacognitive noticing
 
 Each dimension stores:
-- score 0–1
-- confidence 0–1
-- evidence source(s)
+- an internal routing score 0–1 (questionnaire and practice evidence only — never rendered, never
+  presented to the user as a measurement)
+- ordinal evidence strength: strong / moderate / weak / insufficient
+- evidence source(s) with provenance
 - contradictory evidence
+
+External AI evidence does not score dimensions. It produces observations, themes, and hypotheses.
+See `duck/m1_6_inference_and_visual_reset.md` for the numbers policy binding the whole product.
+
+## Observation → hypothesis
+The chain the product runs on:
+
+`self-report → external observation → contradiction → hypothesis → practice experiment → evidence`
+
+A returned observation such as *"often opens adjacent lines of inquiry before closing the original
+one"* becomes a working hypothesis — *"your attention may branch before it settles"* — carrying a
+stated prediction about the next seven days of practice and a stated condition that would disconfirm
+it. A hypothesis without a prediction does not ship.
+
+Support states, in test-first order: **contested** (sources disagree), **converging**,
+**single-source (observed)**, **single-source (self-report)**, **not yet supported**. Test the claim
+most likely to be wrong first.
 
 ## Provisional practice hypotheses
 H1 Scattered / high-switching
@@ -51,9 +73,11 @@ H2 Intermittently focused
 H3 Dull / low-energy
 H4 Emotionally captured
 H5 Naturally sustained / one-pointed
-H6 Insufficient evidence
+H6 Capacity present, gating appears variable
+H7 Insufficient evidence
 
-Do not show H1–H5 as identity labels. Show plain-English descriptions.
+Do not show H1–H6 as identity labels. Show plain-English descriptions, hedged, about attention
+behaviour rather than about the person. H7 is a supported outcome, not a failure state.
 
 ## Initial practice templates
 1. Return Training

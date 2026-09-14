@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+/// Compares statements, not scores. Nothing on this screen is a number.
 struct EvidenceComparisonView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -11,44 +12,53 @@ struct EvidenceComparisonView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: QuietSpacing.generous) {
+                VStack(alignment: .leading, spacing: QuietSpacing.section) {
                     Text("How the two views compare")
                         .font(.quietDisplay)
                         .foregroundStyle(Color.quietInk)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("comparison.title")
 
-                    comparisonSummary(
-                        title: "You reported",
-                        text: questionnaireSummary
-                    )
-                    comparisonSummary(
-                        title: "Your AI behavior profile suggests",
-                        text: profile.externalBehavioralSummary ?? "No behavioral summary was retained."
-                    )
-                    comparisonSummary(
-                        title: "Our current interpretation",
-                        text: "\(profile.interpretation.title). \(profile.interpretation.summary)"
-                    )
+                    if !profile.externalSelfReportStatements.isEmpty {
+                        section("You described yourself as", profile.externalSelfReportStatements)
+                    }
+                    section("What was observed in your conversations", profile.observations.map(\.pattern))
 
-                    VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                        Text("Dimension by dimension")
+                    if !profile.externalDifferences.isEmpty {
+                        section("Where those differ", profile.externalDifferences, tint: .quietClay)
+                    }
+
+                    VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                        Text("Our current interpretation")
                             .font(.quietTitle)
-                        ForEach(comparisons) { comparison in
-                            SourceComparisonCard(comparison: comparison)
+                            .foregroundStyle(Color.quietInk)
+                        Text("\(profile.interpretation.title). \(profile.interpretation.summary)")
+                            .font(.quietBody)
+                            .foregroundStyle(Color.quietSecondaryInk)
+                        HStack(spacing: QuietSpacing.compact) {
+                            Text("How sure we are")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.quietSecondaryInk)
+                            EvidenceStrengthBadge(strength: profile.overallStrength)
+                        }
+                    }
+
+                    if !comparisons.isEmpty {
+                        VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                            Text("Theme by theme")
+                                .font(.quietTitle)
+                                .foregroundStyle(Color.quietInk)
+                            ForEach(comparisons) { comparison in
+                                SourceComparisonCard(comparison: comparison)
+                            }
                         }
                     }
 
                     if let alternatives = profile.alternativeInterpretations, !alternatives.isEmpty {
-                        VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                            Text("Alternative interpretations")
-                                .font(.quietTitle)
-                            ForEach(alternatives, id: \.self) { alternative in
-                                Label(alternative, systemImage: "arrow.triangle.branch")
-                                    .font(.subheadline)
-                                    .foregroundStyle(Color.quietInk.opacity(0.74))
-                            }
-                        }
+                        section("Other explanations we considered", alternatives)
+                    }
+                    if !profile.externalLimitations.isEmpty {
+                        section("Limitations your AI noted", profile.externalLimitations)
                     }
 
                     Button("Remove AI evidence", role: .destructive) {
@@ -60,11 +70,18 @@ struct EvidenceComparisonView: View {
 
                     Text("Removing this evidence restores the questionnaire-only profile. Your pasted source text was never uploaded.")
                         .font(.footnote)
-                        .foregroundStyle(Color.quietInk.opacity(0.6))
+                        .foregroundStyle(Color.quietSecondaryInk)
                 }
                 .padding(QuietSpacing.generous)
             }
-            .background(Color.quietPaper.ignoresSafeArea())
+            .background(
+                ZStack(alignment: .top) {
+                    Color.quietPaper
+                    ContourField(alignment: .topTrailing, mode: .divergent)
+                        .frame(height: 200)
+                }
+                .ignoresSafeArea()
+            )
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -73,21 +90,24 @@ struct EvidenceComparisonView: View {
         }
     }
 
-    private var questionnaireSummary: String {
-        let evidence = comparisons.flatMap(\.questionnaireEvidence)
-        return evidence.isEmpty
-            ? "No questionnaire evidence is available yet."
-            : evidence.prefix(3).joined(separator: " ")
-    }
-
-    private func comparisonSummary(title: String, text: String) -> some View {
+    private func section(_ title: String, _ items: [String], tint: Color = .quietSecondaryInk) -> some View {
         VStack(alignment: .leading, spacing: QuietSpacing.compact) {
             Text(title)
                 .font(.quietTitle)
                 .foregroundStyle(Color.quietInk)
-            Text(text)
-                .font(.quietBody)
-                .foregroundStyle(Color.quietInk.opacity(0.72))
+            if items.isEmpty {
+                Text("Nothing recorded here yet.")
+                    .font(.quietBody)
+                    .foregroundStyle(Color.quietSecondaryInk)
+            } else {
+                ForEach(items, id: \.self) { item in
+                    Label(item, systemImage: "circle.fill")
+                        .labelStyle(.titleAndIcon)
+                        .imageScale(.small)
+                        .font(.subheadline)
+                        .foregroundStyle(tint)
+                }
+            }
         }
     }
 }
@@ -96,37 +116,54 @@ private struct SourceComparisonCard: View {
     let comparison: SourceComparison
 
     var body: some View {
-        VStack(alignment: .leading, spacing: QuietSpacing.compact) {
-            HStack {
-                Text(comparison.dimension.title)
+        VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+            HStack(alignment: .top) {
+                Text(comparison.theme.title)
                     .font(.headline)
+                    .foregroundStyle(Color.quietInk)
                 Spacer()
                 Text(relationshipTitle)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(relationshipColor)
+                    .font(.caption2.weight(.bold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(relationshipWash)
+                    .foregroundStyle(Color.quietInk)
+                    .clipShape(Capsule())
             }
-            HStack(spacing: QuietSpacing.generous) {
-                score(title: "You", value: comparison.questionnaireScore)
-                score(title: "AI evidence", value: comparison.externalAIScore)
-            }
+
+            statements("You reported", comparison.questionnaireEvidence)
+            statements("Observed", comparison.externalAIEvidence)
+
             if comparison.relationship == .disagreement {
-                Text("These sources point in different directions. Both remain in the profile and confidence is reduced.")
-                    .font(.caption)
-                    .foregroundStyle(Color.quietClay)
+                Label(
+                    "These point in different directions. Both are kept, and this is what we test first.",
+                    systemImage: "arrow.left.arrow.right"
+                )
+                .font(.caption)
+                .foregroundStyle(Color.quietClay)
             }
         }
-        .padding(QuietSpacing.standard)
-        .background(Color.quietMist)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .quietCard()
     }
 
-    private func score(title: String, value: Double?) -> some View {
+    @ViewBuilder
+    private func statements(_ title: String, _ items: [String]) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.caption)
-            Text(value?.formatted(.percent.precision(.fractionLength(0))) ?? "—")
-                .font(.headline.monospacedDigit())
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.quietSecondaryInk)
+            if items.isEmpty {
+                Text("—")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.quietSecondaryInk)
+            } else {
+                ForEach(items.prefix(3), id: \.self) { item in
+                    Text(item)
+                        .font(.subheadline)
+                        .foregroundStyle(Color.quietInk)
+                }
+            }
         }
-        .foregroundStyle(Color.quietInk.opacity(0.72))
     }
 
     private var relationshipTitle: String {
@@ -137,7 +174,11 @@ private struct SourceComparisonCard: View {
         }
     }
 
-    private var relationshipColor: Color {
-        comparison.relationship == .disagreement ? .quietClay : .quietNeem
+    private var relationshipWash: Color {
+        switch comparison.relationship {
+        case .agreement: .quietMintWash
+        case .disagreement: .quietCoralWash
+        case .singleSource: .quietLemonWash
+        }
     }
 }
