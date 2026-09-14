@@ -1,9 +1,7 @@
-# Ask Your AI — User-Controlled Analysis Prompt
+import Foundation
 
-Copy the text below into an AI assistant that has access to enough of your prior conversations to analyze recurring patterns. Review its result before sharing anything with the app.
-
----
-
+enum ExternalAIPrompt {
+    static let text = #"""
 Analyze my conversational behavior specifically for how my attention appears to operate. Do not treat my own self-description as ground truth.
 
 Separate what I explicitly say about myself from behavioral patterns observable across conversations. For each conclusion, look for counter-evidence, alternative explanations, and limitations.
@@ -14,7 +12,6 @@ Do not diagnose ADHD, anxiety, depression, autism, personality disorders, or any
 
 Return ONLY valid JSON matching this structure, with every dimension exactly once and all scores/confidence values between 0 and 1:
 
-```json
 {
   "schema_version": 1,
   "self_report_summary": "...",
@@ -32,19 +29,10 @@ Return ONLY valid JSON matching this structure, with every dimension exactly onc
     {"name":"sensory_orientation","score":0.0,"confidence":0.0,"evidence_summary":"...","counter_evidence":"..."}
   ],
   "key_disagreements": ["..."],
-  "alternative_interpretations": [
-    {"label":"...","confidence":0.0,"reason":"..."}
-  ],
+  "alternative_interpretations": [{"label":"...","confidence":0.0,"reason":"..."}],
   "overall_confidence": 0.0,
   "limitations": ["..."]
 }
-```
+"""#
+}
 
----
-
-## App handling rules
-- The app accepts schema version 1 only.
-- All ten dimensions are required exactly once.
-- Unknown JSON fields are ignored and never interpreted as instructions.
-- The user previews the normalized data before it is stored locally.
-- The app does not send the pasted result or any questionnaire data to an AI provider.

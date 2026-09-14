@@ -1,41 +1,43 @@
 # Profile Schema
 
-Suggested Swift models:
+Implemented domain shape (abridged):
 
 ```swift
-enum EvidenceSource: String, Codable {
+enum EvidenceSource: Codable {
     case questionnaire
-    case aiProfile
-    case importedHistory
+    case externalAI(provider: AIProvider)
     case practiceOutcome
 }
 
-struct EvidenceItem: Identifiable, Codable {
-    let id: UUID
+struct ObservedSignal: Identifiable, Codable {
+    let id: String
     let source: EvidenceSource
+    let questionID: String
     let dimension: AttentionDimension
     let direction: Double // -1...1
+    let weight: Double // 0...1
     let confidence: Double // 0...1
+    let timestamp: Date
+    let category: EvidenceCategory
     let summary: String
-    let counterEvidence: String?
+    let userApprovedNote: String?
 }
 
 struct DimensionAssessment: Codable {
     let dimension: AttentionDimension
-    var score: Double // 0...1
-    var confidence: Double // 0...1
-    var evidenceIDs: [UUID]
+    let score: Double // 0...1
+    let confidence: Double // 0...1
+    let evidence: [ObservedSignal]
+    let contradictions: [String]
 }
 
 struct AttentionProfile: Codable {
-    var selfReportSummary: String
-    var evidenceSummary: String
-    var disagreements: [String]
-    var alternatives: [AlternativeHypothesis]
-    var dimensions: [DimensionAssessment]
-    var currentPracticeHypothesis: PracticeHypothesis
-    var overallConfidence: Double
-    var updatedAt: Date
+    let dimensions: [DimensionAssessment]
+    let interpretation: ProfileInterpretation
+    let overallConfidence: Double
+    let sourceComparisons: [SourceComparison]?
+    let alternativeInterpretations: [String]?
+    let updatedAt: Date
 }
 ```
 
@@ -48,3 +50,6 @@ The questionnaire implementation establishes this evidence pipeline before exter
 `QuestionAnswer → ObservedSignal → DimensionAssessment → ProfileInterpretation`
 
 Each `ObservedSignal` retains a stable question identifier, direction, weight, evidence source, and user-facing summary. `DimensionAssessment` retains the contributing signals and explicit contradiction explanations. M1 also adds `sensoryOrientation` as a tenth dimension and defines `energyDullness` so higher values always represent greater dullness/low-energy tendency. See `duck/m1_scoring_model.md` for the implemented scoring and confidence rules.
+
+## M2 implementation note
+`ObservedSignal` now carries provider-aware provenance, confidence, timestamp, evidence category, and an optional user-approved note. Legacy M1 questionnaire signals decode into the expanded model with safe defaults. External schema and reconciliation rules are documented in `duck/m2_external_ai_schema.md`.

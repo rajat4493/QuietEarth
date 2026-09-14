@@ -284,7 +284,10 @@ enum QuestionnaireBank {
                     dimension: template.dimension,
                     direction: template.direction,
                     weight: template.weight,
-                    summary: template.summary
+                    summary: template.summary,
+                    confidence: 1,
+                    timestamp: answer.answeredAt,
+                    category: .selfReport
                 )
             }
         }
@@ -333,4 +336,3 @@ enum QuestionnaireBank {
         SignalTemplate(dimension: dimension, direction: direction, weight: weight, summary: summary)
     }
 }
-

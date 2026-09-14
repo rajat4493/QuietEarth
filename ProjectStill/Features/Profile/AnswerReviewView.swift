@@ -77,15 +77,13 @@ private struct EditAnswerView: View {
 
     private func revise(_ option: QuestionnaireOption) {
         guard let session = sessions.first else { return }
-        let answers = QuestionnairePersistence.update(
+        _ = QuestionnairePersistence.update(
             questionID: question.id,
             optionID: option.id,
             session: session,
             context: modelContext
         )
-        let profile = ProfileEngine().makeProfile(from: answers)
-        QuestionnairePersistence.saveProfile(profile, in: modelContext)
+        QuestionnairePersistence.rebuildProfile(in: modelContext)
         dismiss()
     }
 }
-

@@ -5,6 +5,7 @@ struct AppRootView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StoredAttentionProfile.updatedAt, order: .reverse) private var storedProfiles: [StoredAttentionProfile]
     @Query(sort: \QuestionnaireSession.updatedAt, order: .reverse) private var sessions: [QuestionnaireSession]
+    @Query private var externalProfiles: [StoredExternalAIProfile]
     @State private var path: [AppRoute] = []
     @State private var didHandleLaunchArguments = false
 
@@ -21,7 +22,13 @@ struct AppRootView: View {
         NavigationStack(path: $path) {
             Group {
                 if let currentProfile {
-                    ProfileView(profile: currentProfile)
+                    ProfileView(
+                        profile: currentProfile,
+                        hasQuestionnaireEvidence: sessions.first?.isComplete == true,
+                        hasExternalEvidence: !externalProfiles.isEmpty,
+                        onQuestionnaire: { path.append(.questionnaire) },
+                        onUseAI: { path.append(.externalAIIntake) }
+                    )
                 } else {
                     OpeningView(
                         primaryTitle: hasQuestionnaireProgress ? "Continue questionnaire" : "Understand my mind",
@@ -39,12 +46,21 @@ struct AppRootView: View {
                         path.append(.privacyChoice)
                     }
                 case .privacyChoice:
-                    PrivacyChoiceView {
-                        path.append(.questionnaire)
-                    }
+                    PrivacyChoiceView(
+                        onQuestionnaire: { path.append(.questionnaire) },
+                        onExternalAI: { path.append(.externalAIIntake) }
+                    )
                 case .questionnaire:
                     QuestionnaireView {
                         path.removeAll()
+                    }
+                case .externalAIIntake:
+                    ExternalAIIntakeView {
+                        if sessions.first?.isComplete == true {
+                            path.removeAll()
+                        } else {
+                            path = [.questionnaire]
+                        }
                     }
                 }
             }
@@ -66,11 +82,14 @@ struct AppRootView: View {
         if let profiles = try? modelContext.fetch(FetchDescriptor<StoredAttentionProfile>()) {
             profiles.forEach(modelContext.delete)
         }
+        if let externalProfiles = try? modelContext.fetch(FetchDescriptor<StoredExternalAIProfile>()) {
+            externalProfiles.forEach(modelContext.delete)
+        }
         try? modelContext.save()
     }
 }
 
 #Preview {
     AppRootView()
-        .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self], inMemory: true)
+        .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self, StoredExternalAIProfile.self], inMemory: true)
 }

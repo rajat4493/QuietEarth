@@ -46,6 +46,31 @@ final class StoredAttentionProfile {
     }
 }
 
+@Model
+final class StoredExternalAIProfile {
+    var providerRawValue: String
+    var payloadData: Data
+    var approvedAt: Date
+    var userNote: String?
+
+    init(
+        provider: AIProvider,
+        payload: ExternalAIProfilePayload,
+        approvedAt: Date = .now,
+        userNote: String? = nil
+    ) {
+        self.providerRawValue = provider.rawValue
+        self.payloadData = (try? JSONEncoder().encode(payload)) ?? Data()
+        self.approvedAt = approvedAt
+        self.userNote = userNote
+    }
+
+    var provider: AIProvider { AIProvider(rawValue: providerRawValue) ?? .other }
+    var payload: ExternalAIProfilePayload? {
+        try? JSONDecoder().decode(ExternalAIProfilePayload.self, from: payloadData)
+    }
+}
+
 @MainActor
 enum QuestionnairePersistence {
     static func session(in context: ModelContext) -> QuestionnaireSession {
@@ -69,6 +94,56 @@ enum QuestionnairePersistence {
         try? context.save()
     }
 
+    static func saveExternalProfile(
+        provider: AIProvider,
+        payload: ExternalAIProfilePayload,
+        userNote: String?,
+        in context: ModelContext
+    ) {
+        if let existing = try? context.fetch(FetchDescriptor<StoredExternalAIProfile>()).first {
+            existing.providerRawValue = provider.rawValue
+            existing.payloadData = (try? JSONEncoder().encode(payload)) ?? Data()
+            existing.approvedAt = .now
+            existing.userNote = userNote
+        } else {
+            context.insert(StoredExternalAIProfile(provider: provider, payload: payload, userNote: userNote))
+        }
+        try? context.save()
+        rebuildProfile(in: context)
+    }
+
+    static func removeExternalProfile(in context: ModelContext) {
+        if let records = try? context.fetch(FetchDescriptor<StoredExternalAIProfile>()) {
+            records.forEach(context.delete)
+        }
+        try? context.save()
+        rebuildProfile(in: context)
+    }
+
+    static func rebuildProfile(in context: ModelContext) {
+        let answers = (try? context.fetch(FetchDescriptor<QuestionnaireSession>()).first?.answers) ?? []
+        let externalRecords = (try? context.fetch(FetchDescriptor<StoredExternalAIProfile>())) ?? []
+        let external = externalRecords.first
+        let payload = external?.payload
+        let signals: [ObservedSignal]
+        if let record = external, let payload = record.payload {
+            signals = ExternalEvidenceConverter.signals(
+                from: payload,
+                provider: record.provider,
+                approvedAt: record.approvedAt,
+                userNote: record.userNote
+            )
+        } else {
+            signals = []
+        }
+        let profile = ProfileEngine().makeProfile(
+            from: answers,
+            additionalSignals: signals,
+            externalPayload: payload
+        )
+        saveProfile(profile, in: context)
+    }
+
     static func update(
         questionID: String,
         optionID: String,
@@ -86,4 +161,3 @@ enum QuestionnairePersistence {
         return answers
     }
 }
-

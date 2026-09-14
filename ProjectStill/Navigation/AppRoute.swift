@@ -4,6 +4,7 @@ enum AppRoute: Hashable {
     case howItWorks
     case privacyChoice
     case questionnaire
+    case externalAIIntake
 
     var accessibilityTitle: String {
         switch self {
@@ -13,6 +14,8 @@ enum AppRoute: Hashable {
             "Choose what to share"
         case .questionnaire:
             "Questionnaire"
+        case .externalAIIntake:
+            "Use your AI"
         }
     }
 }

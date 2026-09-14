@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "self_report_summary": "The user describes difficulty focusing consistently.",
+  "behavioral_summary": "Conversation behavior shows frequent topic switching alongside sustained, detailed engagement when a topic becomes personally meaningful.",
+  "dimensions": [
+    {"name":"attentional_switching","score":0.86,"confidence":0.88,"evidence_summary":"Topics change frequently across exploratory exchanges.","counter_evidence":"Long threads sometimes remain tightly scoped."},
+    {"name":"focus_persistence","score":0.91,"confidence":0.86,"evidence_summary":"Once engaged, the user sustains detailed multi-step work.","counter_evidence":"Routine topics are sometimes left quickly."},
+    {"name":"associative_branching","score":0.82,"confidence":0.84,"evidence_summary":"One question often opens several related lines of inquiry.","counter_evidence":"The user can request a narrow response when needed."},
+    {"name":"disengagement_difficulty","score":0.58,"confidence":0.62,"evidence_summary":"Deeply engaging topics sometimes continue beyond the initial task.","counter_evidence":"Explicit stopping points are usually followed."},
+    {"name":"novelty_dependence","score":0.69,"confidence":0.66,"evidence_summary":"New angles appear to renew engagement.","counter_evidence":"Some repetitive refinement work is sustained."},
+    {"name":"emotional_capture","score":0.42,"confidence":0.48,"evidence_summary":"Emotional material sometimes redirects the discussion.","counter_evidence":"Insufficient evidence across enough contexts."},
+    {"name":"energy_dullness","score":0.31,"confidence":0.44,"evidence_summary":"Long engaged exchanges do not usually show fading alertness.","counter_evidence":"Conversation timing cannot reliably show physical energy."},
+    {"name":"low_stimulation_tolerance","score":0.47,"confidence":0.39,"evidence_summary":"There is mixed evidence about remaining with low-stimulation tasks.","counter_evidence":"Insufficient evidence outside conversation."},
+    {"name":"metacognitive_noticing","score":0.76,"confidence":0.79,"evidence_summary":"The user often notices and corrects the direction of an exchange.","counter_evidence":"Some shifts are recognized only after several turns."},
+    {"name":"sensory_orientation","score":0.36,"confidence":0.35,"evidence_summary":"Verbal and conceptual cues are more visible than sensory cues in conversation.","counter_evidence":"Conversation is a poor setting for observing sensory orientation."}
+  ],
+  "key_disagreements": [
+    "The self-description of weak focus conflicts with sustained engagement during personally meaningful work."
+  ],
+  "alternative_interpretations": [
+    {"label":"Generalized weak concentration","confidence":0.28,"reason":"Possible, but it does not explain repeated periods of sustained detailed engagement."},
+    {"label":"Context-sensitive engagement","confidence":0.74,"reason":"Interest and task meaning may strongly affect whether attention settles."}
+  ],
+  "overall_confidence": 0.78,
+  "limitations": [
+    "Conversation behavior reflects only one setting.",
+    "No clinical or diagnostic inference is warranted."
+  ]
+}

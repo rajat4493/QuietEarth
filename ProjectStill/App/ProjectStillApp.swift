@@ -7,6 +7,6 @@ struct ProjectStillApp: App {
         WindowGroup {
             AppRootView()
         }
-        .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self])
+        .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self, StoredExternalAIProfile.self])
     }
 }

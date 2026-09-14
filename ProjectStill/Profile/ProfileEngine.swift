@@ -1,17 +1,42 @@
 import Foundation
 
 struct ProfileEngine {
-    func makeProfile(from answers: [QuestionAnswer], now: Date = .now) -> AttentionProfile {
-        let signals = QuestionnaireBank.signals(for: answers)
+    func makeProfile(
+        from answers: [QuestionAnswer],
+        additionalSignals: [ObservedSignal] = [],
+        externalPayload: ExternalAIProfilePayload? = nil,
+        now: Date = .now
+    ) -> AttentionProfile {
+        let signals = QuestionnaireBank.signals(for: answers) + additionalSignals
         let dimensions = AttentionDimension.allCases.map { dimension in
             assess(dimension, signals: signals.filter { $0.dimension == dimension })
         }
         let overallConfidence = dimensions.map(\.confidence).reduce(0, +) / Double(dimensions.count)
+        let comparisons = makeComparisons(from: signals)
+        let interpretation = interpret(
+            dimensions: dimensions,
+            comparisons: comparisons,
+            overallConfidence: overallConfidence
+        )
+        var alternatives = externalPayload?.alternativeInterpretations.map {
+            "\($0.label) — \($0.reason)"
+        } ?? []
+        if interpretation.title == "Capacity present, gating appears variable",
+           !alternatives.contains(where: { $0.localizedCaseInsensitiveContains("generalized weak concentration") }) {
+            alternatives.insert(
+                "Generalized weak concentration — This remains possible, but it does not explain the observed periods of strong persistence.",
+                at: 0
+            )
+        }
         return AttentionProfile(
             dimensions: dimensions,
-            interpretation: interpret(dimensions: dimensions, overallConfidence: overallConfidence),
+            interpretation: interpretation,
             overallConfidence: overallConfidence,
-            updatedAt: now
+            updatedAt: now,
+            sourceComparisons: comparisons.isEmpty ? nil : comparisons,
+            alternativeInterpretations: alternatives.isEmpty ? nil : alternatives,
+            externalSelfReportSummary: externalPayload?.selfReportSummary,
+            externalBehavioralSummary: externalPayload?.behavioralSummary
         )
     }
 
@@ -29,11 +54,22 @@ struct ProfileEngine {
             )
         }
 
-        let totalWeight = signals.reduce(0) { $0 + $1.weight }
-        let meanDirection = signals.reduce(0) { $0 + $1.direction * $1.weight } / totalWeight
+        let totalWeight = signals.reduce(0) { $0 + $1.weight * $1.confidence }
+        guard totalWeight > 0 else {
+            return DimensionAssessment(
+                dimension: dimension,
+                score: 0.5,
+                confidence: 0,
+                evidence: signals,
+                contradictions: []
+            )
+        }
+        let meanDirection = signals.reduce(0) {
+            $0 + $1.direction * $1.weight * $1.confidence
+        } / totalWeight
         let score = clamp((meanDirection + 1) / 2)
         let variance = signals.reduce(0) {
-            $0 + pow($1.direction - meanDirection, 2) * $1.weight
+            $0 + pow($1.direction - meanDirection, 2) * $1.weight * $1.confidence
         } / totalWeight
         let agreement = clamp(1 - sqrt(variance) * 0.85)
         let coverage = min(1, totalWeight / 2)
@@ -43,7 +79,7 @@ struct ProfileEngine {
         let contradictionPenalty = contradiction ? 0.65 : 1
         let confidence = clamp((0.2 + 0.8 * coverage * agreement) * contradictionPenalty)
         let contradictions = contradiction
-            ? ["Your answers point in different directions here. Context may change this pattern, so confidence is lower."]
+            ? ["Evidence points in different directions here. Context may change this pattern, so confidence is lower."]
             : []
 
         return DimensionAssessment(
@@ -57,6 +93,7 @@ struct ProfileEngine {
 
     private func interpret(
         dimensions: [DimensionAssessment],
+        comparisons: [SourceComparison],
         overallConfidence: Double
     ) -> ProfileInterpretation {
         func value(_ dimension: AttentionDimension) -> Double {
@@ -67,6 +104,24 @@ struct ProfileEngine {
         let branching = value(.associativeBranching)
         let persistence = value(.focusPersistence)
         let dullness = value(.energyDullness)
+
+        let persistenceComparison = comparisons.first { $0.dimension == .focusPersistence }
+        let switchingComparison = comparisons.first { $0.dimension == .attentionalSwitching }
+        if let questionnairePersistence = persistenceComparison?.questionnaireScore,
+           let externalPersistence = persistenceComparison?.externalAIScore,
+           questionnairePersistence < 0.4,
+           externalPersistence > 0.65,
+           max(switchingComparison?.questionnaireScore ?? 0, switchingComparison?.externalAIScore ?? 0) > 0.65 {
+            return ProfileInterpretation(
+                title: "Capacity present, gating appears variable",
+                summary: "Sustained attention appears available once engagement is established, while choosing or maintaining the target may vary by context.",
+                reasons: [
+                    "Your questionnaire reports weaker persistence.",
+                    "Behavioral evidence reports strong persistence when engaged.",
+                    "At least one source also reports high attention switching."
+                ]
+            )
+        }
 
         if overallConfidence < 0.45 {
             return ProfileInterpretation(
@@ -109,5 +164,38 @@ struct ProfileEngine {
     private func clamp(_ value: Double) -> Double {
         min(1, max(0, value))
     }
-}
 
+    private func makeComparisons(from signals: [ObservedSignal]) -> [SourceComparison] {
+        guard signals.contains(where: { $0.source.isExternalAI }) else { return [] }
+        return AttentionDimension.allCases.map { dimension in
+            let dimensionSignals = signals.filter { $0.dimension == dimension }
+            let questionnaire = dimensionSignals.filter { $0.source == .questionnaire }
+            let external = dimensionSignals.filter { $0.source.isExternalAI }
+            let questionnaireScore = sourceScore(questionnaire)
+            let externalScore = sourceScore(external)
+            let relationship: EvidenceRelationship
+            if let questionnaireScore, let externalScore {
+                relationship = abs(questionnaireScore - externalScore) <= 0.18 ? .agreement : .disagreement
+            } else {
+                relationship = .singleSource
+            }
+            return SourceComparison(
+                dimension: dimension,
+                relationship: relationship,
+                questionnaireScore: questionnaireScore,
+                externalAIScore: externalScore,
+                questionnaireEvidence: questionnaire.map(\.summary),
+                externalAIEvidence: external.map(\.summary)
+            )
+        }
+    }
+
+    private func sourceScore(_ signals: [ObservedSignal]) -> Double? {
+        let totalWeight = signals.reduce(0) { $0 + $1.weight * $1.confidence }
+        guard totalWeight > 0 else { return nil }
+        let direction = signals.reduce(0) {
+            $0 + $1.direction * $1.weight * $1.confidence
+        } / totalWeight
+        return clamp((direction + 1) / 2)
+    }
+}

@@ -104,8 +104,7 @@ struct QuestionnaireView: View {
         } else {
             session.isComplete = true
             session.currentIndex = max(0, updatedQuestions.count - 1)
-            let profile = ProfileEngine().makeProfile(from: answers)
-            QuestionnairePersistence.saveProfile(profile, in: modelContext)
+            QuestionnairePersistence.rebuildProfile(in: modelContext)
             try? modelContext.save()
             onComplete()
         }
@@ -116,6 +115,5 @@ struct QuestionnaireView: View {
     NavigationStack {
         QuestionnaireView(onComplete: {})
     }
-    .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self], inMemory: true)
+    .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self, StoredExternalAIProfile.self], inMemory: true)
 }
-

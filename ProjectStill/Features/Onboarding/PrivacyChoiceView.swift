@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PrivacyChoiceView: View {
     let onQuestionnaire: () -> Void
+    let onExternalAI: () -> Void
 
     var body: some View {
         ScrollView {
@@ -26,9 +27,9 @@ struct PrivacyChoiceView: View {
                     EvidenceChoiceCard(
                         title: "Ask your AI",
                         detail: "Your chats stay with your AI provider. You bring back only the profile you approve.",
-                        badge: "M2",
-                        isEnabled: false,
-                        action: {}
+                        badge: "RECOMMENDED",
+                        isEnabled: true,
+                        action: onExternalAI
                     )
                     EvidenceChoiceCard(
                         title: "Import an export",
@@ -89,12 +90,18 @@ private struct EvidenceChoiceCard: View {
         .opacity(isEnabled ? 1 : 0.58)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isEnabled ? .isButton : [])
-        .accessibilityIdentifier(isEnabled ? "privacy.questionnaire" : "privacy.future")
+        .accessibilityIdentifier(accessibilityIdentifier)
+    }
+
+    private var accessibilityIdentifier: String {
+        if title == "Questionnaire only" { return "privacy.questionnaire" }
+        if title == "Ask your AI" { return "privacy.externalAI" }
+        return "privacy.future"
     }
 }
 
 #Preview {
     NavigationStack {
-        PrivacyChoiceView(onQuestionnaire: {})
+        PrivacyChoiceView(onQuestionnaire: {}, onExternalAI: {})
     }
 }

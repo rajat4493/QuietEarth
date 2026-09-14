@@ -2,7 +2,12 @@ import SwiftUI
 
 struct ProfileView: View {
     let profile: AttentionProfile
+    let hasQuestionnaireEvidence: Bool
+    let hasExternalEvidence: Bool
+    let onQuestionnaire: () -> Void
+    let onUseAI: () -> Void
     @State private var showsAnswerReview = false
+    @State private var showsComparison = false
 
     var body: some View {
         ScrollView {
@@ -23,6 +28,22 @@ struct ProfileView: View {
                         .font(.quietBody)
                         .foregroundStyle(Color.quietInk.opacity(0.74))
                         .lineSpacing(4)
+                }
+
+                if !hasQuestionnaireEvidence {
+                    Button("Complete questionnaire to compare", action: onQuestionnaire)
+                        .buttonStyle(.primaryAction)
+                        .accessibilityIdentifier("profile.completeQuestionnaire")
+                } else if hasExternalEvidence {
+                    Button("How the two views compare") {
+                        showsComparison = true
+                    }
+                    .buttonStyle(.primaryAction)
+                    .accessibilityIdentifier("profile.compareEvidence")
+                } else {
+                    Button("Use your AI for another view", action: onUseAI)
+                        .buttonStyle(.primaryAction)
+                        .accessibilityIdentifier("profile.useAI")
                 }
 
                 VStack(alignment: .leading, spacing: QuietSpacing.compact) {
@@ -51,11 +72,13 @@ struct ProfileView: View {
                     }
                 }
 
-                Button("Review and revise answers") {
-                    showsAnswerReview = true
+                if hasQuestionnaireEvidence {
+                    Button("Review and revise answers") {
+                        showsAnswerReview = true
+                    }
+                    .buttonStyle(.primaryAction)
+                    .accessibilityIdentifier("profile.reviewAnswers")
                 }
-                .buttonStyle(.primaryAction)
-                .accessibilityIdentifier("profile.reviewAnswers")
 
                 Text("This is a provisional interpretation of questionnaire answers, not a diagnosis or a permanent type.")
                     .font(.footnote)
@@ -66,6 +89,9 @@ struct ProfileView: View {
         .background(Color.quietPaper.ignoresSafeArea())
         .sheet(isPresented: $showsAnswerReview) {
             AnswerReviewView()
+        }
+        .sheet(isPresented: $showsComparison) {
+            EvidenceComparisonView(profile: profile)
         }
     }
 }
@@ -115,4 +141,3 @@ private struct DimensionCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
-

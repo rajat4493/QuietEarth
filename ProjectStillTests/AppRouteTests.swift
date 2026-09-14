@@ -7,6 +7,6 @@ struct AppRouteTests {
         #expect(AppRoute.howItWorks.accessibilityTitle == "How this works")
         #expect(AppRoute.privacyChoice.accessibilityTitle == "Choose what to share")
         #expect(AppRoute.questionnaire.accessibilityTitle == "Questionnaire")
+        #expect(AppRoute.externalAIIntake.accessibilityTitle == "Use your AI")
     }
 }
-

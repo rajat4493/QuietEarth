@@ -78,4 +78,23 @@ final class OnboardingFlowUITests: XCTestCase {
         XCTAssertTrue(persistedTitle.waitForExistence(timeout: 4))
         XCTAssertEqual(persistedTitle.label, titleBeforeRelaunch)
     }
+
+    @MainActor
+    func testMalformedExternalAIProfileIsRejected() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset"]
+        app.launch()
+        app.buttons["opening.begin"].tap()
+        app.buttons["privacy.externalAI"].tap()
+
+        let editor = app.textViews["externalAI.jsonEditor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 3))
+        editor.tap()
+        editor.typeText("not json")
+        app.buttons["externalAI.review"].tap()
+
+        let error = app.staticTexts["externalAI.validationError"]
+        XCTAssertTrue(error.waitForExistence(timeout: 3))
+        XCTAssertTrue(error.label.contains("not valid profile JSON"))
+    }
 }
