@@ -25,7 +25,7 @@ extension Color {
                 : UIColor(red: 36 / 255, green: 36 / 255, blue: 41 / 255, alpha: 1)
         }
     )
-    static let quietOnAccent = Color.white
+    static let quietOnAccent = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? .black : .white })
     static let quietClay = Color(red: 224 / 255, green: 91 / 255, blue: 78 / 255)
     static let quietSaffron = Color(red: 247 / 255, green: 177 / 255, blue: 88 / 255)
     static let quietSeaGlass = Color(red: 168 / 255, green: 168 / 255, blue: 178 / 255)
@@ -62,8 +62,8 @@ enum QuietSpacing {
 }
 
 extension Font {
-    static let quietDisplay = Font.system(size: 38, weight: .bold, design: .rounded)
-    static let quietTitle = Font.system(.title2, design: .rounded, weight: .semibold)
+    static let quietDisplay = Font.system(.largeTitle, design: .default, weight: .regular)
+    static let quietTitle = Font.system(.title2, design: .default, weight: .medium)
     static let quietBody = Font.system(.body, design: .default, weight: .regular)
 }
 

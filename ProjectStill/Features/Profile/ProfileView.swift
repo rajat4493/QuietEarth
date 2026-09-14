@@ -17,13 +17,13 @@ struct ProfileView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: QuietSpacing.section) {
                 VStack(alignment: .leading, spacing: QuietSpacing.compact) {
-                    Text("CURRENT VIEW")
+                    Text("QUIETEARTH / YOUR REFLECTION")
                         .font(.caption.weight(.semibold))
                         .tracking(1.8)
                         .foregroundStyle(Color.quietNeem)
 
                     Text(profile.interpretation.title)
-                        .font(.system(.title, design: .rounded, weight: .bold))
+                        .font(.system(.title, design: .default, weight: .regular))
                         .foregroundStyle(Color.quietInk)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("profile.title")
@@ -155,14 +155,15 @@ private struct HypothesisCard: View {
                     Text(hypothesis.support.title.uppercased())
                         .font(.caption2.weight(.bold))
                         .tracking(1)
-                        .foregroundStyle(hypothesis.support == .contested ? Color.quietCoral : Color.quietNeem)
+                        .foregroundStyle(Color.quietInk.opacity(0.7))
                     Spacer()
                     Text("\(hypothesis.evidenceStrength.title) evidence")
                         .font(.caption2)
                         .foregroundStyle(Color.quietInk.opacity(0.56))
                 }
                 Text(hypothesis.statement)
-                    .font(.headline)
+                    .multilineTextAlignment(.leading)
+                    .font(.body)
                     .foregroundStyle(Color.quietInk)
             }
         }

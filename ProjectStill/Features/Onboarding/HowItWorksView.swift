@@ -17,7 +17,7 @@ struct HowItWorksView: View {
                     .foregroundStyle(Color.quietInk)
                     .accessibilityAddTraits(.isHeader)
 
-                Text("ProjectStill does not diagnose you or assign a permanent mind type. It builds a provisional picture, shows its uncertainty, and tests what may help now.")
+                Text("QuietEarth begins with a provisional picture of your attention. You can explore the evidence and revise your answers at any time.")
                     .font(.quietBody)
                     .foregroundStyle(Color.quietInk.opacity(0.76))
                     .lineSpacing(5)

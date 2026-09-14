@@ -1,5 +1,7 @@
 # TheDuck — Human Summary
 
+Visual update: the public identity is now QuietEarth, with a bundled still mountain landscape, neutral reading surfaces, lighter responsive typography, and corrected dark-mode action contrast. Continuous decorative animation and unavailable import placeholders are removed. See `duck/evidence/M1.6/visual-final.md` for current screenshots, asset provenance, and verification limits.
+
 We are building a small, serious meditation app that does not begin by telling everyone to breathe for ten minutes.
 
 It first asks how the user's mind behaves, optionally lets the user bring in a privacy-preserving profile generated inside their own ChatGPT/Claude, and then shows where self-perception and observed behavior agree or disagree.

@@ -6,54 +6,48 @@ struct OpeningView: View {
     let onLearnMore: () -> Void
 
     var body: some View {
-        ZStack {
-            Color.quietPaper.ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: QuietSpacing.section) {
-                HStack {
-                    Text("PROJECT STILL")
-                        .font(.caption.weight(.semibold))
-                        .tracking(2.4)
-                    Spacer()
-                    Image(systemName: "circle.dotted")
-                        .font(.title2)
-                        .foregroundStyle(Color.quietCoral)
+        GeometryReader { geometry in
+            ZStack {
+                Image("QuietEarthLandscape")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
+                    .overlay(Color.black.opacity(0.40))
+                    .accessibilityHidden(true)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("QuietEarth")
+                            .font(.title2.weight(.medium))
+                            .tracking(1)
+                            .padding(.top, 24)
+                        Spacer(minLength: 100)
+                        Text("A little space.\nA clearer beginning.")
+                            .font(.quietDisplay)
+                            .accessibilityAddTraits(.isHeader)
+                        Text("Discover how your attention moves, and what helps it settle.")
+                            .font(.body)
+                            .lineSpacing(4)
+                        Spacer(minLength: 60)
+                        Button(primaryTitle, action: onBegin)
+                            .font(.headline)
+                            .foregroundStyle(Color.black)
+                            .frame(maxWidth: .infinity, minHeight: 56)
+                            .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                            .accessibilityIdentifier("opening.begin")
+                        Button("How this works", action: onLearnMore)
+                            .font(.body)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .accessibilityIdentifier("opening.learnMore")
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 28)
+                    .frame(minHeight: geometry.size.height, alignment: .topLeading)
                 }
-
-                Spacer(minLength: 28)
-
-                VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                    AttentionPathHero()
-                    Text("Meditation should fit your mind.")
-                        .font(.quietDisplay)
-                        .foregroundStyle(Color.quietInk)
-                        .accessibilityAddTraits(.isHeader)
-                    Text("First, notice how your attention moves.")
-                        .font(.title3)
-                        .foregroundStyle(Color.quietInk.opacity(0.62))
-                }
-
-                Spacer(minLength: 28)
-                VStack(spacing: QuietSpacing.standard) {
-                    Button(primaryTitle, action: onBegin)
-                        .buttonStyle(.primaryAction)
-                        .accessibilityIdentifier("opening.begin")
-
-                    Button("How this works", action: onLearnMore)
-                        .font(.headline)
-                        .frame(minHeight: 44)
-                        .foregroundStyle(Color.quietInk)
-                        .accessibilityIdentifier("opening.learnMore")
-                }
-
             }
-            .padding(.horizontal, QuietSpacing.generous)
-            .padding(.vertical, QuietSpacing.section)
         }
+        .background(Color.black.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
     }
-}
-
-#Preview {
-    OpeningView(onBegin: {}, onLearnMore: {})
 }

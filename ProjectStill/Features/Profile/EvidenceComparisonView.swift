@@ -115,7 +115,7 @@ struct EvidenceComparisonView: View {
         }
         .padding(QuietSpacing.standard)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(0.16))
+        .background(Color.quietSurface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -140,7 +140,7 @@ struct EvidenceComparisonView: View {
         }
         .padding(QuietSpacing.standard)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(0.16))
+        .background(Color.quietSurface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }

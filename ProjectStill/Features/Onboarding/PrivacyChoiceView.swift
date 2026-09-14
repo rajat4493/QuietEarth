@@ -27,20 +27,13 @@ struct PrivacyChoiceView: View {
                     EvidenceChoiceCard(
                         title: "Ask your AI",
                         detail: "Your chats stay with your AI provider. You bring back only the profile you approve.",
-                        badge: "RECOMMENDED",
+                        badge: nil,
                         isEnabled: true,
                         action: onExternalAI
                     )
-                    EvidenceChoiceCard(
-                        title: "Import an export",
-                        detail: "Experimental. Selected history will be analyzed on-device where possible.",
-                        badge: "M7",
-                        isEnabled: false,
-                        action: {}
-                    )
                 }
 
-                Text("Choice flows arrive in the next milestones.")
+                Text("You can change your answers or add another view later.")
                     .font(.footnote)
                     .foregroundStyle(Color.quietInk.opacity(0.58))
                     .frame(maxWidth: .infinity, alignment: .center)

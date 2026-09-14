@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+ AAAAA1111111111111111111 = {isa = PBXBuildFile; fileRef = AAAAA2222222222222222222; };
 		08579A19E6186B6B514102E2 /* ExternalAIPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69804AFE3402A9092E6A6A75 /* ExternalAIPrompt.swift */; };
 		097608315E7C3B98DEFC8CA7 /* ExternalAIParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B01DDB2A314F48D0CC3E02F /* ExternalAIParserTests.swift */; };
 		1772E39DC97F85513747CB1A /* PersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F94F815B7E7B81783B25711 /* PersistenceTests.swift */; };
@@ -57,6 +58,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+ AAAAA2222222222222222222 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ProjectStill/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		0B9575A0E65D4797D8AA1A49 /* ProjectStillApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectStillApp.swift; sourceTree = "<group>"; };
 		1B01DDB2A314F48D0CC3E02F /* ExternalAIParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAIParserTests.swift; sourceTree = "<group>"; };
 		1D9F3C3A1A4215CC35CF2FB6 /* ExternalAIFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAIFixture.swift; sourceTree = "<group>"; };
@@ -262,6 +264,7 @@
 		};
 /* End PBXGroup section */
 
+AAAAA3333333333333333333 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (AAAAA1111111111111111111,); runOnlyForDeploymentPostprocessing = 0; };
 /* Begin PBXNativeTarget section */
 		2D96D6D638CA1565E3C248A9 /* ProjectStillUITests */ = {
 			isa = PBXNativeTarget;
@@ -286,6 +289,7 @@
 			buildConfigurationList = 4B03AE1378C9AA137FEEC161 /* Build configuration list for PBXNativeTarget "ProjectStill" */;
 			buildPhases = (
 				EC9D518842D0DCCA29A2E253 /* Sources */,
+ AAAAA3333333333333333333,
 			);
 			buildRules = (
 			);
@@ -435,7 +439,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ProjectStill;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietEarth;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -614,7 +618,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = ProjectStill;
+				INFOPLIST_KEY_CFBundleDisplayName = QuietEarth;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

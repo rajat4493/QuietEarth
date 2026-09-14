@@ -11,7 +11,6 @@ struct PrimaryActionButtonStyle: ButtonStyle {
             .background(isEnabled ? Color.quietNeem : Color.quietNeem.opacity(0.45))
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             .opacity(configuration.isPressed ? 0.82 : 1)
-            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }
 

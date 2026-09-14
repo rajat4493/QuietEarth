@@ -18,6 +18,7 @@ struct QuestionnaireView: View {
     }
 
     var body: some View {
+        ScrollView {
         VStack(alignment: .leading, spacing: QuietSpacing.section) {
             VStack(alignment: .leading, spacing: QuietSpacing.compact) {
                 Text("Question \(currentIndex + 1) of \(questions.count)")
@@ -71,6 +72,7 @@ struct QuestionnaireView: View {
             }
         }
         .padding(QuietSpacing.generous)
+        }
         .background(Color.quietPaper.ignoresSafeArea())
         .navigationTitle("Your attention")
         .navigationBarTitleDisplayMode(.inline)
