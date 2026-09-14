@@ -6,6 +6,7 @@ struct AppRouteTests {
     func routeAccessibilityTitles() {
         #expect(AppRoute.howItWorks.accessibilityTitle == "How this works")
         #expect(AppRoute.privacyChoice.accessibilityTitle == "Choose what to share")
+        #expect(AppRoute.questionnaire.accessibilityTitle == "Questionnaire")
     }
 }
 

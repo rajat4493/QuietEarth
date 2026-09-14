@@ -4,6 +4,7 @@ final class OnboardingFlowUITests: XCTestCase {
     @MainActor
     func testPrimaryRouteReachesPrivacyChoice() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset"]
         app.launch()
 
         let beginButton = app.buttons["opening.begin"]
@@ -18,6 +19,7 @@ final class OnboardingFlowUITests: XCTestCase {
     @MainActor
     func testExplanationRouteContinuesToPrivacyChoice() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset"]
         app.launch()
 
         let learnMoreButton = app.buttons["opening.learnMore"]
@@ -30,5 +32,50 @@ final class OnboardingFlowUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["How much do you want to share?"].waitForExistence(timeout: 3))
     }
-}
 
+    @MainActor
+    func testQuestionnaireResumesAfterRelaunch() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset"]
+        app.launch()
+        app.buttons["opening.begin"].tap()
+        app.buttons["privacy.questionnaire"].tap()
+        XCTAssertTrue(app.buttons["questionnaire.option.0"].waitForExistence(timeout: 3))
+        app.buttons["questionnaire.option.0"].tap()
+
+        app.terminate()
+        app.launchArguments = []
+        app.launch()
+
+        let continueButton = app.buttons["opening.begin"]
+        XCTAssertTrue(continueButton.waitForExistence(timeout: 3))
+        XCTAssertEqual(continueButton.label, "Continue questionnaire")
+        continueButton.tap()
+        XCTAssertTrue(app.staticTexts["Once something has your interest, how long can you usually stay with it?"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testCompletedProfileSurvivesRelaunch() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset"]
+        app.launch()
+        app.buttons["opening.begin"].tap()
+        app.buttons["privacy.questionnaire"].tap()
+
+        for _ in 0..<12 {
+            let option = app.buttons["questionnaire.option.0"]
+            XCTAssertTrue(option.waitForExistence(timeout: 3))
+            option.tap()
+        }
+
+        XCTAssertTrue(app.staticTexts["profile.title"].waitForExistence(timeout: 5))
+        let titleBeforeRelaunch = app.staticTexts["profile.title"].label
+        app.terminate()
+        app.launchArguments = []
+        app.launch()
+
+        let persistedTitle = app.staticTexts["profile.title"]
+        XCTAssertTrue(persistedTitle.waitForExistence(timeout: 4))
+        XCTAssertEqual(persistedTitle.label, titleBeforeRelaunch)
+    }
+}

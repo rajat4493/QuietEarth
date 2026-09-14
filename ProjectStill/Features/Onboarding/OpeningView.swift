@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OpeningView: View {
+    var primaryTitle = "Understand my mind"
     let onBegin: () -> Void
     let onLearnMore: () -> Void
 
@@ -31,7 +32,7 @@ struct OpeningView: View {
                 Spacer()
 
                 VStack(spacing: QuietSpacing.standard) {
-                    Button("Understand my mind", action: onBegin)
+                    Button(primaryTitle, action: onBegin)
                         .buttonStyle(.primaryAction)
                         .accessibilityIdentifier("opening.begin")
 

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct PrivacyChoiceView: View {
+    let onQuestionnaire: () -> Void
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: QuietSpacing.generous) {
@@ -17,17 +19,23 @@ struct PrivacyChoiceView: View {
                     EvidenceChoiceCard(
                         title: "Questionnaire only",
                         detail: "Nothing imported.",
-                        badge: nil
+                        badge: nil,
+                        isEnabled: true,
+                        action: onQuestionnaire
                     )
                     EvidenceChoiceCard(
                         title: "Ask your AI",
                         detail: "Your chats stay with your AI provider. You bring back only the profile you approve.",
-                        badge: "RECOMMENDED"
+                        badge: "M2",
+                        isEnabled: false,
+                        action: {}
                     )
                     EvidenceChoiceCard(
                         title: "Import an export",
                         detail: "Experimental. Selected history will be analyzed on-device where possible.",
-                        badge: "EXPERIMENTAL"
+                        badge: "M7",
+                        isEnabled: false,
+                        action: {}
                     )
                 }
 
@@ -49,35 +57,44 @@ private struct EvidenceChoiceCard: View {
     let title: String
     let detail: String
     let badge: String?
+    let isEnabled: Bool
+    let action: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: QuietSpacing.compact) {
-            if let badge {
-                Text(badge)
-                    .font(.caption2.weight(.bold))
-                    .tracking(1.2)
-                    .foregroundStyle(Color.quietClay)
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                if let badge {
+                    Text(badge)
+                        .font(.caption2.weight(.bold))
+                        .tracking(1.2)
+                        .foregroundStyle(Color.quietClay)
+                }
+
+                Text(title)
+                    .font(.quietTitle)
+                    .foregroundStyle(Color.quietInk)
+
+                Text(detail)
+                    .font(.quietBody)
+                    .foregroundStyle(Color.quietInk.opacity(0.72))
+                    .lineSpacing(3)
             }
-
-            Text(title)
-                .font(.quietTitle)
-                .foregroundStyle(Color.quietInk)
-
-            Text(detail)
-                .font(.quietBody)
-                .foregroundStyle(Color.quietInk.opacity(0.72))
-                .lineSpacing(3)
+            .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+            .padding(QuietSpacing.generous)
+            .background(Color.quietMist)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
-        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
-        .padding(QuietSpacing.generous)
-        .background(Color.quietMist)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1 : 0.58)
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(isEnabled ? .isButton : [])
+        .accessibilityIdentifier(isEnabled ? "privacy.questionnaire" : "privacy.future")
     }
 }
 
 #Preview {
     NavigationStack {
-        PrivacyChoiceView()
+        PrivacyChoiceView(onQuestionnaire: {})
     }
 }

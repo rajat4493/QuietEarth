@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct ProjectStillApp: App {
@@ -6,6 +7,6 @@ struct ProjectStillApp: App {
         WindowGroup {
             AppRootView()
         }
+        .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self])
     }
 }
-

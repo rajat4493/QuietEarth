@@ -10,3 +10,5 @@ Success for MVP is not “lots of meditations.” Success is that Client 0 can c
 
 ## Build status
 M0 is complete. ProjectStill now opens as a native iPhone app with the Quiet Earth visual foundation and working routes from the opening screen to either a short explanation or the privacy-choice screen. The app clearly offers a questionnaire-only path before any conversation-derived evidence. No personal data is collected, stored, or sent in this milestone. Questionnaire behavior begins in M1 after milestone review.
+
+M1 is complete. A user can now finish a 12–15 question adaptive intake and see a provisional profile made of individual attention dimensions, evidence statements, confidence, and visible contradictions. The app explains any broader interpretation instead of presenting it as a permanent type. Progress and completed profiles stay on the device and survive relaunch, and answers can be reviewed and changed. No AI import, external API, or meditation recommendation has been added.
