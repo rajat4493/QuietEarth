@@ -76,6 +76,13 @@ Reconciliation is a comparison of claims, not arithmetic.
 5. External observations do not mutate questionnaire dimension scores or confidence.
 6. Removing AI evidence restores the exact questionnaire-only profile and removes the comparison material.
 
+## Working hypothesis rules
+1. A hypothesis is a claim to test, never a diagnosis or settled identity.
+2. Every hypothesis carries a visible basis, counterpoint, prediction, and disconfirmation condition.
+3. Explicit differences between self-report and observation are contested hypotheses and sort first.
+4. Questionnaire interpretations and external observations remain separate hypotheses with source labels.
+5. External evidence strength remains the ordinal label supplied in schema v2; it is never converted to a hidden number.
+
 Because free-form observations do not carry a trustworthy machine-readable dimension, M1.6 deliberately does not pretend to semantically classify them. The user sees an honest side-by-side view. Future practice results provide the stronger behavioral measurement needed to update a hypothesis.
 
 ## Scope boundary
@@ -89,3 +96,5 @@ Still excluded: provider APIs, direct account access, chat export/upload, diagno
 - deleting AI evidence restores the questionnaire-only profile exactly;
 - profile UI exposes no percentages or psychometric-style progress bars;
 - light/dark and Reduce Motion screenshots demonstrate the Sunlit Calm system.
+
+Status: **verified complete**. Evidence is in `duck/evidence/M1.6/report.md`.

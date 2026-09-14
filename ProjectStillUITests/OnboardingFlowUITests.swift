@@ -97,4 +97,19 @@ final class OnboardingFlowUITests: XCTestCase {
         XCTAssertTrue(error.waitForExistence(timeout: 3))
         XCTAssertTrue(error.label.contains("not valid profile JSON"))
     }
+
+    @MainActor
+    func testSeededQualitativeProfileHasNoPsychometricPercentages() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset", "-uiTestingSeedProfile", "-uiTestingSeedExternal"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["profile.title"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["profile.hypothesis.difference.0"].exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '%'" )).firstMatch.exists)
+
+        app.buttons["profile.compareEvidence"].tap()
+        XCTAssertTrue(app.staticTexts["comparison.title"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Where the views differ"].exists)
+    }
 }

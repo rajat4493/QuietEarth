@@ -3,7 +3,9 @@
 ## Definition of done
 A user can copy the supplied behavioral-analysis prompt into ChatGPT, Claude, or another assistant; paste the user-reviewed structured result; preview the normalized evidence; and see where it agrees or conflicts with questionnaire evidence. The external evidence can be removed to restore the questionnaire-only profile.
 
-Status: **complete**.
+Status: **superseded by M1.6**.
+
+This report is retained as historical evidence of the first M2 implementation. Its numeric external scores, confidence-weighted reconciliation, and schema v1 are no longer product behavior and must not be treated as current requirements. See `duck/evidence/M1.6/report.md` for the verified implementation.
 
 ## Delivered
 - “Ask your AI” onboarding route and “Use your AI for another view” profile route.

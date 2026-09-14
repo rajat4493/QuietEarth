@@ -21,6 +21,8 @@
 		6AF10E6F65666B32B6C409B9 /* ExternalAIIntakeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E078F142760E3812A7169E /* ExternalAIIntakeView.swift */; };
 		71C10E68449B8A08AC5EA021 /* ExternalAIProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A156457D53B6767893333F4D /* ExternalAIProfile.swift */; };
 		74599AF18BF1ABBF4A41FED0 /* ProfileEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDD3792ACD1C92732187A5A /* ProfileEngineTests.swift */; };
+		74A11BF18BF1ABBF4A41FED1 /* HypothesisEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDD3792ACD1C92732187A6A /* HypothesisEngine.swift */; };
+		74A11BF18BF1ABBF4A41FED2 /* HypothesisEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDD3792ACD1C92732187A7A /* HypothesisEngineTests.swift */; };
 		924324BA9DB75DE2DA517320 /* ExternalAIFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D9F3C3A1A4215CC35CF2FB6 /* ExternalAIFixture.swift */; };
 		929E77371772D78AB4CE0D99 /* PrivacyChoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B01F6EF98B3E746F8F5847 /* PrivacyChoiceView.swift */; };
 		A0B32396B2B9DF7C4CE6C2F3 /* OnboardingFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C730C0B87DEFE99DB6EB8F83 /* OnboardingFlowUITests.swift */; };
@@ -83,6 +85,8 @@
 		B7C88BCF8EDF9154417050F1 /* QuietTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuietTheme.swift; sourceTree = "<group>"; };
 		C730C0B87DEFE99DB6EB8F83 /* OnboardingFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowUITests.swift; sourceTree = "<group>"; };
 		DBDD3792ACD1C92732187A5A /* ProfileEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEngineTests.swift; sourceTree = "<group>"; };
+		DBDD3792ACD1C92732187A6A /* HypothesisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HypothesisEngine.swift; sourceTree = "<group>"; };
+		DBDD3792ACD1C92732187A7A /* HypothesisEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HypothesisEngineTests.swift; sourceTree = "<group>"; };
 		E0B01F6EF98B3E746F8F5847 /* PrivacyChoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyChoiceView.swift; sourceTree = "<group>"; };
 		EA3F177181DC68A251712EA3 /* EvidenceComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EvidenceComparisonView.swift; sourceTree = "<group>"; };
 		F4E078F142760E3812A7169E /* ExternalAIIntakeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAIIntakeView.swift; sourceTree = "<group>"; };
@@ -196,6 +200,7 @@
 			isa = PBXGroup;
 			children = (
 				8A8BF308A476F1151787A06C /* AttentionProfile.swift */,
+				DBDD3792ACD1C92732187A6A /* HypothesisEngine.swift */,
 				244C038348B190855C267865 /* ProfileEngine.swift */,
 			);
 			path = Profile;
@@ -215,6 +220,7 @@
 				6AC92471A31F020C37143F6C /* AppRouteTests.swift */,
 				1D9F3C3A1A4215CC35CF2FB6 /* ExternalAIFixture.swift */,
 				1B01DDB2A314F48D0CC3E02F /* ExternalAIParserTests.swift */,
+				DBDD3792ACD1C92732187A7A /* HypothesisEngineTests.swift */,
 				3F94F815B7E7B81783B25711 /* PersistenceTests.swift */,
 				DBDD3792ACD1C92732187A5A /* ProfileEngineTests.swift */,
 				4BA1BE84C72E5510E47D2B54 /* ReconciliationTests.swift */,
@@ -363,6 +369,7 @@
 				C81645F43AF94FDB0EFC5D1F /* AppRouteTests.swift in Sources */,
 				924324BA9DB75DE2DA517320 /* ExternalAIFixture.swift in Sources */,
 				097608315E7C3B98DEFC8CA7 /* ExternalAIParserTests.swift in Sources */,
+				74A11BF18BF1ABBF4A41FED2 /* HypothesisEngineTests.swift in Sources */,
 				1772E39DC97F85513747CB1A /* PersistenceTests.swift in Sources */,
 				74599AF18BF1ABBF4A41FED0 /* ProfileEngineTests.swift in Sources */,
 				EB7FD07553FE3F3AB0E570A2 /* ReconciliationTests.swift in Sources */,
@@ -392,6 +399,7 @@
 				68F911E3D4CF6BECECD8CBE4 /* ExternalAIProfilePreviewView.swift in Sources */,
 				08579A19E6186B6B514102E2 /* ExternalAIPrompt.swift in Sources */,
 				DD63D2BECD6FA3EBB9CFE9A6 /* HowItWorksView.swift in Sources */,
+				74A11BF18BF1ABBF4A41FED1 /* HypothesisEngine.swift in Sources */,
 				EDED9B3A2FED6EF601C1ECF2 /* OpeningView.swift in Sources */,
 				CF36E5F9466D6882BA4D1A12 /* PrimaryActionButtonStyle.swift in Sources */,
 				929E77371772D78AB4CE0D99 /* PrivacyChoiceView.swift in Sources */,

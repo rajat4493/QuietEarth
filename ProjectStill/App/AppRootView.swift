@@ -69,8 +69,12 @@ struct AppRootView: View {
         .task {
             guard !didHandleLaunchArguments else { return }
             didHandleLaunchArguments = true
-            if ProcessInfo.processInfo.arguments.contains("-uiTestingReset") {
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-uiTestingReset") {
                 resetLocalTestData()
+            }
+            if arguments.contains("-uiTestingSeedProfile") {
+                seedTestProfile(includeExternalEvidence: arguments.contains("-uiTestingSeedExternal"))
             }
         }
     }
@@ -85,6 +89,45 @@ struct AppRootView: View {
         if let externalProfiles = try? modelContext.fetch(FetchDescriptor<StoredExternalAIProfile>()) {
             externalProfiles.forEach(modelContext.delete)
         }
+        try? modelContext.save()
+    }
+
+    private func seedTestProfile(includeExternalEvidence: Bool) {
+        let answers = [
+            QuestionAnswer(questionID: "switching", optionID: "very_often", answeredAt: .distantPast),
+            QuestionAnswer(questionID: "persistence", optionID: "brief", answeredAt: .distantPast),
+            QuestionAnswer(questionID: "branching", optionID: "many", answeredAt: .distantPast),
+            QuestionAnswer(questionID: "deadline", optionID: "fragments", answeredAt: .distantPast)
+        ]
+        modelContext.insert(QuestionnaireSession(answers: answers, currentIndex: 4, isComplete: true))
+        if includeExternalEvidence {
+            let payload = ExternalAIProfilePayload(
+                schemaVersion: 2,
+                selfReport: [
+                    ExternalAISelfReport(
+                        statement: "I often describe myself as unable to focus.",
+                        evidenceStrength: .strong
+                    )
+                ],
+                observations: [
+                    ExternalAIObservation(
+                        pattern: "Long-form engagement is sustained when the subject is personally meaningful, even when topics switch frequently.",
+                        evidenceStrength: .moderate,
+                        reason: "Several conversations return to a chosen subject and develop it in depth.",
+                        counterpoint: "Chosen conversations may not represent routine or low-interest tasks."
+                    )
+                ],
+                differencesBetweenSelfReportAndObservation: [
+                    "Self-report emphasizes weak focus, while conversation shows context-specific persistence."
+                ],
+                alternativeExplanations: [
+                    "Interest may affect attentional gating more than general capacity."
+                ],
+                limitations: ["Conversation is only one setting and cannot establish a cognitive trait."]
+            )
+            modelContext.insert(StoredExternalAIProfile(provider: .chatGPT, payload: payload, approvedAt: .distantPast))
+        }
+        QuestionnairePersistence.rebuildProfile(in: modelContext)
         try? modelContext.save()
     }
 }

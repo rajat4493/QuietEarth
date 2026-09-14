@@ -9,6 +9,10 @@ struct ProfileView: View {
     @State private var showsAnswerReview = false
     @State private var showsComparison = false
 
+    private var hypotheses: [WorkingHypothesis] {
+        HypothesisEngine().hypotheses(for: profile)
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: QuietSpacing.generous) {
@@ -28,6 +32,17 @@ struct ProfileView: View {
                         .font(.quietBody)
                         .foregroundStyle(Color.quietInk.opacity(0.74))
                         .lineSpacing(4)
+                }
+
+                VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                    Text("Working hypotheses")
+                        .font(.quietTitle)
+                    Text("Claims to test, not conclusions about you.")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.quietInk.opacity(0.64))
+                    ForEach(hypotheses) { hypothesis in
+                        HypothesisCard(hypothesis: hypothesis)
+                    }
                 }
 
                 if !hasQuestionnaireEvidence {
@@ -93,6 +108,57 @@ struct ProfileView: View {
         .sheet(isPresented: $showsComparison) {
             EvidenceComparisonView(profile: profile)
         }
+    }
+}
+
+private struct HypothesisCard: View {
+    let hypothesis: WorkingHypothesis
+
+    var body: some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                if !hypothesis.basis.isEmpty {
+                    VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                        Text("Basis").font(.caption.weight(.bold))
+                        ForEach(hypothesis.basis, id: \.self) { item in
+                            Text(item).font(.subheadline)
+                        }
+                    }
+                }
+                if let counterpoint = hypothesis.counterpoint {
+                    Label(counterpoint, systemImage: "arrow.left.arrow.right")
+                        .font(.subheadline)
+                        .foregroundStyle(Color.quietCoral)
+                }
+                VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                    Text("What would support it").font(.caption.weight(.bold))
+                    Text(hypothesis.prediction).font(.subheadline)
+                    Text("What would weaken it").font(.caption.weight(.bold))
+                    Text(hypothesis.disconfirmation).font(.subheadline)
+                }
+                .foregroundStyle(Color.quietInk.opacity(0.72))
+            }
+            .padding(.top, QuietSpacing.standard)
+        } label: {
+            VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                HStack {
+                    Text(hypothesis.support.title.uppercased())
+                        .font(.caption2.weight(.bold))
+                        .tracking(1)
+                        .foregroundStyle(hypothesis.support == .contested ? Color.quietCoral : Color.quietNeem)
+                    Spacer()
+                    Text("\(hypothesis.evidenceStrength.title) evidence")
+                        .font(.caption2)
+                        .foregroundStyle(Color.quietInk.opacity(0.56))
+                }
+                Text(hypothesis.statement)
+                    .font(.headline)
+                    .foregroundStyle(Color.quietInk)
+            }
+        }
+        .padding(QuietSpacing.standard)
+        .quietCard()
+        .accessibilityIdentifier("profile.hypothesis.\(hypothesis.id)")
     }
 }
 
