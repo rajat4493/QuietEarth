@@ -15,33 +15,29 @@ struct ProfileView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: QuietSpacing.generous) {
+            VStack(alignment: .leading, spacing: QuietSpacing.section) {
                 VStack(alignment: .leading, spacing: QuietSpacing.compact) {
-                    Text("WHAT WE THINK SO FAR")
+                    Text("CURRENT VIEW")
                         .font(.caption.weight(.semibold))
                         .tracking(1.8)
                         .foregroundStyle(Color.quietNeem)
 
                     Text(profile.interpretation.title)
-                        .font(.quietDisplay)
+                        .font(.system(.title, design: .rounded, weight: .bold))
                         .foregroundStyle(Color.quietInk)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("profile.title")
 
-                    Text(profile.interpretation.summary)
-                        .font(.quietBody)
-                        .foregroundStyle(Color.quietInk.opacity(0.74))
-                        .lineSpacing(4)
                 }
 
-                VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                    Text("Working hypotheses")
-                        .font(.quietTitle)
-                    Text("Claims to test, not conclusions about you.")
-                        .font(.subheadline)
-                        .foregroundStyle(Color.quietInk.opacity(0.64))
-                    ForEach(hypotheses) { hypothesis in
-                        HypothesisCard(hypothesis: hypothesis)
+                if let primaryHypothesis = hypotheses.first {
+                    VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                        Text("Working hypothesis")
+                            .font(.quietTitle)
+                        Text("A claim to test, not a conclusion about you.")
+                            .font(.subheadline)
+                            .foregroundStyle(Color.quietInk.opacity(0.6))
+                        HypothesisCard(hypothesis: primaryHypothesis)
                     }
                 }
 
@@ -61,41 +57,55 @@ struct ProfileView: View {
                         .accessibilityIdentifier("profile.useAI")
                 }
 
-                VStack(alignment: .leading, spacing: QuietSpacing.compact) {
-                    Text("Why we think this")
-                        .font(.quietTitle)
-                        .foregroundStyle(Color.quietInk)
-                    ForEach(profile.interpretation.reasons, id: \.self) { reason in
-                        Label(reason, systemImage: "line.3.horizontal.decrease.circle")
-                            .font(.subheadline)
-                            .foregroundStyle(Color.quietInk.opacity(0.72))
-                    }
-                }
+                DisclosureGroup("More evidence and details") {
+                    VStack(alignment: .leading, spacing: QuietSpacing.generous) {
+                        ForEach(Array(hypotheses.dropFirst())) { hypothesis in
+                            HypothesisCard(hypothesis: hypothesis)
+                        }
 
-                VStack(alignment: .leading, spacing: QuietSpacing.standard) {
-                    HStack {
-                        Text("What your answers suggest")
-                            .font(.quietTitle)
-                        Spacer()
-                        Text("\(profile.evidenceStrength.title) evidence")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(Color.quietNeem)
-                    }
+                        VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                            Text("Why we think this").font(.headline)
+                            ForEach(profile.interpretation.reasons, id: \.self) { reason in
+                                Text(reason)
+                                    .font(.subheadline)
+                                    .foregroundStyle(Color.quietInk.opacity(0.68))
+                            }
+                        }
 
-                    ForEach(profile.dimensions) { assessment in
-                        DimensionCard(assessment: assessment)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text("Questionnaire detail")
+                                .font(.headline)
+                                .padding(.bottom, QuietSpacing.compact)
+                            ForEach(profile.dimensions) { assessment in
+                                DimensionCard(assessment: assessment)
+                                if assessment.id != profile.dimensions.last?.id {
+                                    Divider().opacity(0.5)
+                                }
+                            }
+                        }
                     }
+                    .padding(.top, QuietSpacing.standard)
                 }
+                .font(.headline)
+                .foregroundStyle(Color.quietInk)
 
                 if hasQuestionnaireEvidence {
                     Button("Review and revise answers") {
                         showsAnswerReview = true
                     }
-                    .buttonStyle(.primaryAction)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .foregroundStyle(Color.quietInk)
+                    .background(Color.quietSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(Color.quietInk.opacity(0.12), lineWidth: 1)
+                    }
                     .accessibilityIdentifier("profile.reviewAnswers")
                 }
 
-                Text("This is a provisional interpretation of questionnaire answers. The labels are descriptive ranges, not psychometric measurements, diagnoses, or permanent types.")
+                Text("Provisional and descriptive—not a diagnosis or permanent type.")
                     .font(.footnote)
                     .foregroundStyle(Color.quietInk.opacity(0.6))
             }
@@ -157,7 +167,8 @@ private struct HypothesisCard: View {
             }
         }
         .padding(QuietSpacing.standard)
-        .quietCard()
+        .background(Color.quietMint)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .accessibilityIdentifier("profile.hypothesis.\(hypothesis.id)")
     }
 }
@@ -198,7 +209,6 @@ private struct DimensionCard: View {
                 .foregroundStyle(Color.quietInk.opacity(0.58))
             }
         }
-        .padding(QuietSpacing.standard)
-        .quietCard()
+        .padding(.vertical, QuietSpacing.standard)
     }
 }

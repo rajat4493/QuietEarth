@@ -5,18 +5,17 @@ M0/M1 proved the shell and deterministic questionnaire, but the first M2 impleme
 
 The previous M2 schema v1 and its score-reconciliation rules are superseded by this document. They are not retained as a compatibility mode.
 
-## Visual reset: Sunlit Calm
-QuietEarth should feel clear, alive, humane, and distinctly iOS-native — not solemn, monastic, clinical, or generically “wellness.” The reference is the energy of Gentler Streak, translated into QuietEarth’s own identity rather than copied.
+## Visual reset: Quiet Focus
+QuietEarth should feel clear, humane, and distinctly iOS-native — not solemn, monastic, clinical, or generically “wellness.” After simulator review, the earlier ivory-and-teal Sunlit Calm palette was rejected as visually distracting and too close to a wellness template.
 
 ### Direction
-- sunlit ivory background, not beige or parchment;
-- deep spruce for readable text and primary actions;
-- sea-glass and mint for freshness and spacious secondary surfaces;
-- muted coral/tangerine for warmth and meaningful contrast;
-- occasional sunlight yellow for optimism and focal moments;
-- clean, near-white cards with light outlines instead of heavy tinted panels;
-- one strong organic attention-path visual on the opening screen;
-- subtle, playful motion that respects Reduce Motion;
+- neutral white/light-grey background and neutral charcoal dark mode;
+- charcoal text and primary actions;
+- coral used sparingly as the sole warm attention signal;
+- neutral grey surfaces with light outlines instead of tinted card stacks;
+- one restrained attention-path visual on the opening screen;
+- optional detail disclosed progressively rather than shown all at once;
+- subtle motion that respects Reduce Motion;
 - familiar platform navigation, with brand color and illustration in content.
 
 ### Avoid
@@ -25,6 +24,15 @@ QuietEarth should feel clear, alive, humane, and distinctly iOS-native — not s
 - generic AI gradients, sparkles, neural networks, or chat-first UI;
 - decorative color that competes with evidence or validation states;
 - dense dashboards and faux measurement graphics.
+
+### Attention and compulsion accessibility
+- one clear decision or primary action at a time;
+- stable navigation and explicit completion/progress states;
+- autosave and reversible revision so interruption is safe;
+- no urgency, streaks, badges, pulsing prompts, or punitive completion language;
+- contradictions use calm language rather than alarm styling;
+- concise summaries first, with supporting evidence behind disclosure controls;
+- these are inclusive interaction choices, not claims of diagnosing or treating ADHD or OCD.
 
 ## Inference reset: describe, do not score
 An external AI is allowed to summarize observable conversational behavior. It is not allowed to assign numeric cognitive scores, probabilities, psychometric ratings, diagnoses, or a “mind type.”

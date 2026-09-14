@@ -34,18 +34,9 @@ struct AttentionPathHero: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack {
-                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .fill(Color.quietMint.opacity(0.75))
-
                 Circle()
-                    .fill(Color.quietSunlight)
-                    .frame(width: 84, height: 84)
-                    .offset(x: proxy.size.width * 0.25, y: -proxy.size.height * 0.22)
-
-                Circle()
-                    .fill(Color.quietCoral.opacity(0.92))
-                    .frame(width: 34, height: 34)
-                    .offset(x: -proxy.size.width * 0.31, y: proxy.size.height * 0.22)
+                    .stroke(Color.quietInk.opacity(0.1), lineWidth: 18)
+                    .frame(width: 150, height: 150)
 
                 Canvas { context, size in
                     var path = Path()
@@ -62,33 +53,24 @@ struct AttentionPathHero: View {
                     )
                     context.stroke(
                         path,
-                        with: .color(.quietNeem),
-                        style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round)
-                    )
-                    context.stroke(
-                        path,
-                        with: .color(.quietSurface.opacity(0.85)),
-                        style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [2, 13])
+                        with: .color(.quietCoral),
+                        style: StrokeStyle(lineWidth: 7, lineCap: .round, lineJoin: .round)
                     )
                 }
-                .padding(18)
-                .offset(y: isMoving ? -3 : 3)
+                .padding(28)
+                .offset(y: isMoving ? -2 : 2)
 
-                Image(systemName: "leaf.fill")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(Color.quietSurface)
-                    .padding(14)
+                Image(systemName: "smallcircle.filled.circle")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(Color.quietOnAccent)
+                    .padding(12)
                     .background(Color.quietNeem)
                     .clipShape(Circle())
                     .offset(x: proxy.size.width * 0.13, y: proxy.size.height * 0.14)
                     .rotationEffect(.degrees(isMoving ? 7 : -7))
             }
-            .overlay {
-                RoundedRectangle(cornerRadius: 34, style: .continuous)
-                    .stroke(Color.quietSeaGlass.opacity(0.35), lineWidth: 1)
-            }
         }
-        .frame(height: 230)
+        .frame(height: 180)
         .onAppear {
             guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
@@ -96,6 +78,6 @@ struct AttentionPathHero: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("An illustrated attention path wanders through sunlight and returns to a leaf.")
+        .accessibilityLabel("A simple line follows a wandering attention path.")
     }
 }

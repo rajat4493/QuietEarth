@@ -6,7 +6,8 @@ A user can combine a deterministic questionnaire profile with user-approved, qua
 Status: **verified complete**.
 
 ## Delivered
-- Sunlit Calm light/dark visual system and Reduce Motion-aware opening illustration.
+- Quiet Focus light/dark visual system: neutral white/grey, charcoal, restrained coral, and a Reduce Motion-aware opening illustration. Ivory and teal were removed after user review.
+- Progressive disclosure on profile and comparison screens, with a single primary hypothesis visible before optional evidence detail.
 - External AI schema v2 with ordinal evidence strength and strict local validation.
 - Explicit rejection of schema v1, numeric fields, score-shaped prose, malformed data, and diagnostic vocabulary.
 - Source-preserving qualitative evidence; external evidence never enters questionnaire scoring.

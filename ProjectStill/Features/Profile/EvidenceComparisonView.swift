@@ -11,7 +11,7 @@ struct EvidenceComparisonView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: QuietSpacing.generous) {
+                VStack(alignment: .leading, spacing: QuietSpacing.section) {
                     Text("How the two views compare")
                         .font(.quietDisplay)
                         .foregroundStyle(Color.quietInk)
@@ -26,7 +26,8 @@ struct EvidenceComparisonView: View {
                     )
 
                     if let evidence {
-                        VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                        DisclosureGroup("Conversation observations") {
+                            VStack(alignment: .leading, spacing: QuietSpacing.standard) {
                             Text("Your AI conversation review noticed")
                                 .font(.quietTitle)
                             ForEach(evidence.observations) { record in
@@ -37,6 +38,8 @@ struct EvidenceComparisonView: View {
                                     counterpoint: record.counterpoint
                                 )
                             }
+                            }
+                            .padding(.top, QuietSpacing.standard)
                         }
 
                         if evidence.differences.isEmpty {
@@ -112,8 +115,8 @@ struct EvidenceComparisonView: View {
         }
         .padding(QuietSpacing.standard)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(0.42))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(color.opacity(0.16))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func textList(
@@ -137,7 +140,7 @@ struct EvidenceComparisonView: View {
         }
         .padding(QuietSpacing.standard)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(0.42))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(color.opacity(0.16))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }

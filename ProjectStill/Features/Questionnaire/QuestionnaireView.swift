@@ -18,7 +18,7 @@ struct QuestionnaireView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: QuietSpacing.generous) {
+        VStack(alignment: .leading, spacing: QuietSpacing.section) {
             VStack(alignment: .leading, spacing: QuietSpacing.compact) {
                 Text("Question \(currentIndex + 1) of \(questions.count)")
                     .font(.caption.weight(.semibold))
@@ -39,7 +39,7 @@ struct QuestionnaireView: View {
                 .font(.quietBody)
                 .foregroundStyle(Color.quietInk.opacity(0.68))
 
-            VStack(spacing: QuietSpacing.standard) {
+            VStack(spacing: 10) {
                 ForEach(Array(currentQuestion.options.enumerated()), id: \.element.id) { index, option in
                     Button {
                         select(option)
@@ -47,7 +47,7 @@ struct QuestionnaireView: View {
                         Text(option.title)
                             .font(.body.weight(.medium))
                             .foregroundStyle(Color.quietInk)
-                            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                            .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
                             .padding(.horizontal, QuietSpacing.standard)
                             .quietCard()
                     }

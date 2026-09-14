@@ -8,27 +8,32 @@ struct OpeningView: View {
     var body: some View {
         ZStack {
             Color.quietPaper.ignoresSafeArea()
-            ContourField(alignment: .topTrailing)
-                .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: QuietSpacing.generous) {
-                Text("PROJECT STILL")
-                    .font(.caption.weight(.semibold))
-                    .tracking(2.4)
-                    .foregroundStyle(Color.quietNeem)
+            VStack(alignment: .leading, spacing: QuietSpacing.section) {
+                HStack {
+                    Text("PROJECT STILL")
+                        .font(.caption.weight(.semibold))
+                        .tracking(2.4)
+                    Spacer()
+                    Image(systemName: "circle.dotted")
+                        .font(.title2)
+                        .foregroundStyle(Color.quietCoral)
+                }
 
-                AttentionPathHero()
+                Spacer(minLength: 28)
 
-                Text("Meditation should fit the mind doing it.")
-                    .font(.quietDisplay)
-                    .foregroundStyle(Color.quietInk)
-                    .accessibilityAddTraits(.isHeader)
+                VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                    AttentionPathHero()
+                    Text("Meditation should fit your mind.")
+                        .font(.quietDisplay)
+                        .foregroundStyle(Color.quietInk)
+                        .accessibilityAddTraits(.isHeader)
+                    Text("First, notice how your attention moves.")
+                        .font(.title3)
+                        .foregroundStyle(Color.quietInk.opacity(0.62))
+                }
 
-                Text("We start by understanding how your attention moves — not by assuming everyone needs the same practice.")
-                    .font(.quietBody)
-                    .foregroundStyle(Color.quietInk.opacity(0.76))
-                    .lineSpacing(5)
-
+                Spacer(minLength: 28)
                 VStack(spacing: QuietSpacing.standard) {
                     Button(primaryTitle, action: onBegin)
                         .buttonStyle(.primaryAction)
@@ -41,7 +46,6 @@ struct OpeningView: View {
                         .accessibilityIdentifier("opening.learnMore")
                 }
 
-                Spacer(minLength: 0)
             }
             .padding(.horizontal, QuietSpacing.generous)
             .padding(.vertical, QuietSpacing.section)
