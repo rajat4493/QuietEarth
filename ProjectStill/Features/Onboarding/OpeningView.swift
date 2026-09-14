@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct OpeningView: View {
+    @AppStorage("appearance.landscape") private var landscape = false
+    @State private var showsAppearance = false
     var primaryTitle = "Understand my mind"
     let onBegin: () -> Void
     let onLearnMore: () -> Void
@@ -8,19 +10,26 @@ struct OpeningView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Image("QuietEarthLandscape")
+                if landscape {
+                Image(QuietTheme.landscapeAsset)
                     .resizable()
                     .scaledToFill()
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .clipped()
                     .overlay(Color.black.opacity(0.40))
                     .accessibilityHidden(true)
+                } else {
+                    Color.quietPaper
+                }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         Text("QuietEarth")
                             .font(.title2.weight(.medium))
                             .tracking(1)
                             .padding(.top, 24)
+                        Button("Appearance") { showsAppearance = true }
+                            .font(.subheadline)
+                            .frame(minHeight: 44)
                         Spacer(minLength: 100)
                         Text("A little space.\nA clearer beginning.")
                             .font(.quietDisplay)
@@ -31,16 +40,16 @@ struct OpeningView: View {
                         Spacer(minLength: 60)
                         Button(primaryTitle, action: onBegin)
                             .font(.headline)
-                            .foregroundStyle(Color.black)
+                            .foregroundStyle(landscape ? Color.black : Color.quietOnAccent)
                             .frame(maxWidth: .infinity, minHeight: 56)
-                            .background(.white, in: RoundedRectangle(cornerRadius: 16))
+                            .background(landscape ? Color.white : Color.quietNeem, in: RoundedRectangle(cornerRadius: QuietTheme.cardRadius))
                             .accessibilityIdentifier("opening.begin")
                         Button("How this works", action: onLearnMore)
                             .font(.body)
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .accessibilityIdentifier("opening.learnMore")
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(landscape ? Color.white : Color.quietInk)
                     .padding(.horizontal, 28)
                     .padding(.bottom, 28)
                     .frame(minHeight: geometry.size.height, alignment: .topLeading)
@@ -49,5 +58,11 @@ struct OpeningView: View {
         }
         .background(Color.black.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showsAppearance) {
+            NavigationStack {
+                AppearanceSettingsView()
+                    .toolbar { Button("Done") { showsAppearance = false } }
+            }
+        }
     }
 }

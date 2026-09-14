@@ -10,6 +10,8 @@
 - No analytics SDK in first internal build
 
 ## Architecture
+Presentation is replaceable through `QuietTheme.swift` (semantic colors, typography, spacing, card geometry, asset reference). Appearance settings use local keys `appearance.mode` and `appearance.landscape`. Profile review stores a separate user note under `profile.userPerspective`; do not feed it into scoring or silently overwrite original evidence. Global reset must clear these keys. Visual design is not user-approved.
+
 Feature modules:
 - Onboarding
 - Questionnaire

@@ -1,5 +1,8 @@
 # TheDuck — Evidence & Verification Ledger
 
+## Current correction
+Visual design is **UNAPPROVED**; prior completion claims describe implementation checks, not user acceptance. M3 now includes a local user-perspective note and persistent appearance controls. See `duck/m3_profile_review.md` for storage, limitations, and verification.
+
 | Claim / Requirement | Evidence expected | Verification | Status at build start |
 |---|---|---|---|
 | User can complete onboarding without sharing chat history | Questionnaire-only path | UI test | VERIFIED M1 — full questionnaire and persisted profile UI test |

@@ -12,6 +12,8 @@ ProjectStill should help a meditation-curious adult form a provisional, evidence
 - No backend, account, analytics SDK, or implicit network path in the MVP.
 
 ## Milestone plan
+Current status: M3 review increment adds a user-authored perspective and configurable appearance. Visual direction remains unapproved. No new M4–M6 features are included in this increment.
+
 1. **M0 — Shell, design tokens, navigation:** establish the Xcode project, accessible visual foundation, opening screen, explanatory route, privacy-choice route, and placeholder boundaries for later features.
 2. **M1 — Questionnaire and local profile:** implement the 12–18 question intake, local domain models, deterministic questionnaire scoring, persistence, and tests.
 3. **M1.6 — Visual and inference reset:** establish Sunlit Calm, keep questionnaire scoring internal/qualitative in presentation, and replace numeric external inference with qualitative schema v2. This supersedes the first M2 schema v1 implementation.

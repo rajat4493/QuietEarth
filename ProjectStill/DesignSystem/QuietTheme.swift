@@ -1,6 +1,31 @@
 import SwiftUI
 import UIKit
 
+/// Presentation configuration only; profile and scoring code never depend on this.
+enum QuietTheme {
+    static let landscapeAsset = "QuietEarthLandscape"
+    static let cardRadius: CGFloat = 16
+}
+
+struct AppearanceSettingsView: View {
+    @AppStorage("appearance.mode") private var mode = "system"
+    @AppStorage("appearance.landscape") private var landscape = false
+
+    var body: some View {
+        Form {
+            Picker("Appearance", selection: $mode) {
+                Text("Use device setting").tag("system")
+                Text("Light").tag("light")
+                Text("Dark").tag("dark")
+            }
+            Toggle("Landscape on welcome screen", isOn: $landscape)
+            Text("Your appearance choices stay on this device and do not change your profile.")
+                .font(.footnote)
+        }
+        .navigationTitle("Appearance")
+    }
+}
+
 extension Color {
     static let quietPaper = Color(
         uiColor: UIColor { traits in
@@ -71,9 +96,9 @@ private struct QuietCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(Color.quietSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: QuietTheme.cardRadius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: QuietTheme.cardRadius, style: .continuous)
                     .stroke(Color.quietInk.opacity(0.08), lineWidth: 1)
             }
     }

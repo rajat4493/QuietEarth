@@ -1,5 +1,7 @@
 # TheDuck — Human Summary
 
+Latest update: visual design remains unapproved following user feedback. A wallpaper did not establish a complete theme. Appearance is now configurable (system/light/dark and optional landscape), and future visual work is separated from evidence logic. M3 adds a saved, editable user perspective alongside the profile. Practice recommendation/session/adaptation features remain future milestones. See `duck/m3_profile_review.md`.
+
 Visual update: the public identity is now QuietEarth, with a bundled still mountain landscape, neutral reading surfaces, lighter responsive typography, and corrected dark-mode action contrast. Continuous decorative animation and unavailable import placeholders are removed. See `duck/evidence/M1.6/visual-final.md` for current screenshots, asset provenance, and verification limits.
 
 We are building a small, serious meditation app that does not begin by telling everyone to breathe for ten minutes.

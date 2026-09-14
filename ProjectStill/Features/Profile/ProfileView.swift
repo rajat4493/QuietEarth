@@ -8,6 +8,10 @@ struct ProfileView: View {
     let onUseAI: () -> Void
     @State private var showsAnswerReview = false
     @State private var showsComparison = false
+    @State private var showsAppearance = false
+    @AppStorage("profile.userPerspective") private var perspective = ""
+    @State private var editingPerspective = false
+    @State private var draftPerspective = ""
 
     private var hypotheses: [WorkingHypothesis] {
         HypothesisEngine().hypotheses(for: profile)
@@ -89,6 +93,21 @@ struct ProfileView: View {
                 .font(.headline)
                 .foregroundStyle(Color.quietInk)
 
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("My perspective").font(.quietTitle)
+                    Text(perspective.isEmpty ? "Add context or explain what does not fit." : perspective)
+                        .font(.body)
+                    Button(perspective.isEmpty ? "Add my perspective" : "Edit my perspective") {
+                        draftPerspective = perspective
+                        editingPerspective = true
+                    }
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("profile.editPerspective")
+                }
+
+                Button("Appearance") { showsAppearance = true }
+                    .frame(minHeight: 44)
+
                 if hasQuestionnaireEvidence {
                     Button("Review and revise answers") {
                         showsAnswerReview = true
@@ -117,6 +136,41 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showsComparison) {
             EvidenceComparisonView(profile: profile)
+        }
+        .sheet(isPresented: $showsAppearance) {
+            NavigationStack {
+                AppearanceSettingsView()
+                    .toolbar { Button("Done") { showsAppearance = false } }
+            }
+        }
+        .sheet(isPresented: $editingPerspective) {
+            NavigationStack {
+                Form {
+                    Section("What would you like to add or correct?") {
+                        TextEditor(text: $draftPerspective)
+                            .frame(minHeight: 180)
+                            .accessibilityIdentifier("profile.perspectiveEditor")
+                            .onChange(of: draftPerspective) { _, value in
+                                draftPerspective = String(value.prefix(2000))
+                            }
+                    }
+                    Text("Saved on this device as your perspective. Original evidence stays visible. Clear the text and save to remove this note.")
+                        .font(.footnote)
+                }
+                .navigationTitle("My perspective")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { editingPerspective = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            perspective = draftPerspective.trimmingCharacters(in: .whitespacesAndNewlines)
+                            editingPerspective = false
+                        }
+                        .accessibilityIdentifier("profile.savePerspective")
+                    }
+                }
+            }
         }
     }
 }

@@ -2,6 +2,26 @@ import XCTest
 
 final class OnboardingFlowUITests: XCTestCase {
     @MainActor
+    func testPerspectiveSurvivesRelaunch() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiTestingReset", "-uiTestingSeedProfile"]
+        app.launch()
+        let edit = app.buttons["profile.editPerspective"]
+        for _ in 0..<6 where !edit.isHittable { app.swipeUp() }
+        XCTAssertTrue(edit.isHittable)
+        edit.tap()
+        let editor = app.textViews["profile.perspectiveEditor"]
+        XCTAssertTrue(editor.waitForExistence(timeout: 3))
+        editor.tap()
+        editor.typeText("Context matters for me.")
+        app.buttons["profile.savePerspective"].tap()
+        app.terminate()
+        app.launchArguments = []
+        app.launch()
+        XCTAssertTrue(app.staticTexts["profile.title"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Context matters for me."].exists)
+    }
+    @MainActor
     func testPrimaryRouteReachesPrivacyChoice() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-uiTestingReset"]
