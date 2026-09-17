@@ -9,6 +9,13 @@ struct ProjectStillApp: App {
             AppRootView()
                 .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
         }
-        .modelContainer(for: [QuestionnaireSession.self, StoredAttentionProfile.self, StoredExternalAIProfile.self])
+        .modelContainer(
+            for: [
+                QuestionnaireSession.self,
+                StoredAttentionProfile.self,
+                StoredExternalAIProfile.self,
+                StoredExperiment.self
+            ]
+        )
     }
 }

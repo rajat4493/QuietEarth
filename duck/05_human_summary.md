@@ -1,6 +1,10 @@
 # TheDuck — Human Summary
 
-Latest update: visual design remains unapproved following user feedback. A wallpaper did not establish a complete theme. Appearance is now configurable (system/light/dark and optional landscape), and future visual work is separated from evidence logic. M3 adds a saved, editable user perspective alongside the profile. Practice recommendation/session/adaptation features remain future milestones. See `duck/m3_profile_review.md`.
+M4–M7 close the core loop, which until now was open: the app could form a hypothesis but never test one. It can now choose a short practice from your profile with deterministic rules and say why in plain evidence statements, run that practice as a quiet timed session with no audio, streaks or badges, take a three-tap reflection afterwards, and at day seven compare what it predicted against what you actually reported. The verdict can be "we were wrong" or "not enough to say", and a hypothesis cannot change on fewer than four completed sessions. Settings now has a real delete-everything, covering the settings and note that previous milestones left behind.
+
+None of it has been compiled. It was written in a Linux container with no Xcode, so the four new test suites have never run and no screenshots exist. Per TheDuck that means M4–M7 are incomplete until someone runs them on a Mac; expect compile errors on the first pass. See `duck/m4_m7_core_loop.md`.
+
+Earlier update: visual design remains unapproved following user feedback. A wallpaper did not establish a complete theme. Appearance is now configurable (system/light/dark and optional landscape), and future visual work is separated from evidence logic. M3 adds a saved, editable user perspective alongside the profile. Practice recommendation/session/adaptation features remain future milestones. See `duck/m3_profile_review.md`.
 
 Visual update: the public identity is now QuietEarth, with a bundled still mountain landscape, neutral reading surfaces, lighter responsive typography, and corrected dark-mode action contrast. Continuous decorative animation and unavailable import placeholders are removed. See `duck/evidence/M1.6/visual-final.md` for current screenshots, asset provenance, and verification limits.
 

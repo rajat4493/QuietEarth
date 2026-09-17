@@ -6,6 +6,9 @@ struct ProfileView: View {
     let hasExternalEvidence: Bool
     let onQuestionnaire: () -> Void
     let onUseAI: () -> Void
+    /// Present only when an experiment can be started from here.
+    var recommendation: PracticeRecommendation?
+    var onStartExperiment: (() -> Void)?
     @State private var showsAnswerReview = false
     @State private var showsComparison = false
     @State private var showsAppearance = false
@@ -15,6 +18,45 @@ struct ProfileView: View {
 
     private var hypotheses: [WorkingHypothesis] {
         HypothesisEngine().hypotheses(for: profile)
+    }
+
+    /// "We're not declaring a type. We're testing a hypothesis."
+    private func experimentInvitation(
+        _ recommendation: PracticeRecommendation,
+        start: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+            Text("We're not declaring a type. We're testing a hypothesis.")
+                .font(.quietTitle)
+                .foregroundStyle(Color.quietInk)
+
+            Text("\(recommendation.template.title) · \(recommendation.minutes) minutes a day for seven days")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(Color.quietInk.opacity(0.8))
+
+            Text(recommendation.template.successMeaning)
+                .font(.subheadline)
+                .foregroundStyle(Color.quietInk.opacity(0.75))
+
+            DisclosureGroup("Why this practice") {
+                VStack(alignment: .leading, spacing: QuietSpacing.compact) {
+                    ForEach(recommendation.reasons, id: \.self) { reason in
+                        Text(reason)
+                            .font(.subheadline)
+                            .foregroundStyle(Color.quietInk.opacity(0.78))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding(.top, QuietSpacing.compact)
+            }
+            .accessibilityIdentifier("profile.whyThisPractice")
+
+            Button("Start the 7-day experiment", action: start)
+                .buttonStyle(.primaryAction)
+                .accessibilityIdentifier("profile.startExperiment")
+        }
+        .padding(QuietSpacing.standard)
+        .quietCard()
     }
 
     var body: some View {
@@ -49,6 +91,8 @@ struct ProfileView: View {
                     Button("Complete questionnaire to compare", action: onQuestionnaire)
                         .buttonStyle(.primaryAction)
                         .accessibilityIdentifier("profile.completeQuestionnaire")
+                } else if let recommendation, let onStartExperiment {
+                    experimentInvitation(recommendation, start: onStartExperiment)
                 } else if hasExternalEvidence {
                     Button("How the two views compare") {
                         showsComparison = true
@@ -59,6 +103,20 @@ struct ProfileView: View {
                     Button("Use your AI for another view", action: onUseAI)
                         .buttonStyle(.primaryAction)
                         .accessibilityIdentifier("profile.useAI")
+                }
+
+                if hasQuestionnaireEvidence, recommendation != nil {
+                    if hasExternalEvidence {
+                        Button("How the two views compare") {
+                            showsComparison = true
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .accessibilityIdentifier("profile.compareEvidence")
+                    } else {
+                        Button("Use your AI for another view", action: onUseAI)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .accessibilityIdentifier("profile.useAI")
+                    }
                 }
 
                 DisclosureGroup("More evidence and details") {
