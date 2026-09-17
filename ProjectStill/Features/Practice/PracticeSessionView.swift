@@ -33,6 +33,17 @@ struct PracticeSessionView: View {
 
     private var currentStep: PracticeStep { steps[currentStepIndex] }
 
+    /// Seconds into the current step, so cues land at the same point in the
+    /// practice whatever length was chosen.
+    private var elapsedInStep: Int {
+        let preceding = steps.prefix(currentStepIndex).reduce(0) { $0 + $1.seconds }
+        return max(0, elapsed - preceding)
+    }
+
+    private var currentCue: PracticeCue? {
+        currentStep.cue(atElapsed: elapsedInStep)
+    }
+
     private var remaining: Int { max(0, totalSeconds - elapsed) }
 
     var body: some View {
@@ -47,13 +58,16 @@ struct PracticeSessionView: View {
                     .foregroundStyle(Color.quietInk.opacity(0.6))
                     .accessibilityIdentifier("session.stepTitle")
 
-                Text(currentStep.instruction)
+                Text(currentCue?.text ?? "")
                     .font(.quietTitle)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color.quietInk)
                     .padding(.horizontal, QuietSpacing.generous)
-                    .id(currentStep.id)
+                    .frame(minHeight: 120, alignment: .center)
+                    .id(currentCue?.id ?? currentStep.id)
                     .transition(.opacity)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.6), value: currentCue?.id)
+                    .accessibilityIdentifier("session.cue")
             }
 
             ring
@@ -125,6 +139,7 @@ struct PracticeSessionView: View {
         guard isRunning else { return }
         let previousStep = currentStepIndex
         elapsed = min(totalSeconds, elapsed + 1)
+
 
         if currentStepIndex != previousStep {
             UIImpactFeedbackGenerator(style: .soft).impactOccurred()

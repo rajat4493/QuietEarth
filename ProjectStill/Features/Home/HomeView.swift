@@ -69,6 +69,20 @@ struct HomeView: View {
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(Color.quietInk)
                         .padding(.top, QuietSpacing.compact)
+
+                    if let reference = ClassicalReference.reference(for: recommendation.template.id) {
+                        DisclosureGroup("Where this comes from") {
+                            VStack(alignment: .leading, spacing: QuietSpacing.standard) {
+                                ProvenanceCard(reference: reference)
+                                Text(ClassicalReference.frameNote)
+                                    .font(.footnote)
+                                    .foregroundStyle(Color.quietInk.opacity(0.6))
+                            }
+                            .padding(.top, QuietSpacing.compact)
+                        }
+                        .accessibilityIdentifier("home.whereThisComesFrom")
+                        .padding(.top, QuietSpacing.compact)
+                    }
                 }
                 .padding(.top, QuietSpacing.compact)
             }

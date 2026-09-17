@@ -15,7 +15,7 @@ Visual design is **UNAPPROVED**; prior completion claims describe implementation
 | Feedback changes later recommendation when thresholds met | Deterministic rule engine | Unit tests | WRITTEN M6 — four-session floor and six day-seven branches covered; not yet run |
 | Delete/reset actually removes local profile/history | Storage test | Integration test | WRITTEN M7 — clears every store plus the three UserDefaults keys; not yet run |
 | Raw import does not silently upload source history | Network inspection | Manual verification | OUT OF SCOPE — experimental import deliberately not built; see `duck/m4_m7_core_loop.md` |
-| Sanskrit references show provenance and caveat | Reference cards | Content review | OPEN |
+| Sanskrit references show provenance and caveat | Reference cards | Content review | WRITTEN — `ClassicalReference` carries citation, transliteration, our own gloss, one-of-several context, modern parallel and caveat; a public-domain edition is named for checking. No modern translation is reproduced. Not yet run or reviewed by a Sanskritist. |
 
 ## Milestone status
 - **M0 complete:** app shell, design tokens, opening/explanation/privacy navigation, unit test, UI tests, and light/dark simulator evidence are recorded in `duck/evidence/M0/report.md`.

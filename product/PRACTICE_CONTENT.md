@@ -168,19 +168,31 @@ adding visual weight.
 
 ---
 
-## 7. What is still outstanding
+## 7. Status
 
-- **A named translation.** Everything above cites sūtra numbers and transliteration, which are stable.
-  The English wording is not: translations differ substantially and some are in copyright. Before any
-  of this ships, pick one public-domain or licensed edition, name it on every card, and use it
-  consistently. This is unresolved and blocks shipping Layer 3.
+**Done.** The glosses are written and live in `ProjectStill/Practice/ClassicalReference.swift`. Every
+one is our own plain-English rendering, labelled as such on the card, with a public-domain edition
+(Johnston 1912, Jha 1907) named so a reader can check it against a scholarly source. No modern
+translator's wording is reproduced anywhere, so the copyright question is closed.
+
+The six practices are expanded from 185 words of instruction to roughly 720, delivered as **timed
+cues** rather than a paragraph held on screen for four minutes. Each cue is placed at a fraction of
+its step, so pacing scales with any session length: guidance arrives, then silence, then guidance.
+That is the difference between a guided practice and a timer with a caption.
+
+`ProvenanceCard` implements Layer 3, including the lineage strip.
+
+## 8. What is still outstanding
+- A Sanskritist's read of the glosses. They are careful and deliberately plain, but they are not
+  scholarship and have not been checked by anyone qualified.
 - Devanagari alongside transliteration, and diacritics rendered correctly at all Dynamic Type sizes.
 - Whether the commentarial scale (`kṣipta, mūḍha, vikṣipta, ekāgra, niruddha`) appears at all. It maps
   seductively well onto the patterns, which is exactly why it is risky — it is commentarial rather
   than Patañjali's own, and it reads as a five-type personality system. Current recommendation: cite
   it in Layer 3 as a historical parallel, never as a label, or leave it out.
-- Expanding practice instruction depth. 185 words across six templates is the real content gap; the
-  mapping above is the skeleton, not the flesh.
+- Someone who actually teaches meditation reading the cue text aloud at pace, to check the silences
+  land where they should.
+- The "this isn't working for me" escape from §5 is specified but not built.
 
 ## Sources
 

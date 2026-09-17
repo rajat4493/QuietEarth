@@ -117,6 +117,40 @@ struct RecommendationEngineTests {
         }
     }
 
+    @Test("Guidance arrives as ordered cues inside every step")
+    func cuesAreWellFormed() {
+        for template in PracticeTemplate.all {
+            for minutes in [template.shortestMinutes, template.longestMinutes] {
+                for anchor in PracticeAnchor.allCases {
+                    for step in template.steps(minutes: minutes, anchor: anchor) {
+                        #expect(!step.cues.isEmpty)
+                        #expect(step.cues.allSatisfy { (0...1).contains($0.fraction) })
+                        #expect(step.cues.allSatisfy { !$0.text.isEmpty })
+                        // Offsets stay inside the step and never run backwards.
+                        let offsets = step.cues.map { $0.offset(in: step.seconds) }
+                        #expect(offsets == offsets.sorted())
+                        #expect(offsets.allSatisfy { $0 >= 0 && $0 < step.seconds })
+                        // A cue is always in force, including at the first second.
+                        #expect(step.cue(atElapsed: 0) != nil)
+                        #expect(step.cue(atElapsed: step.seconds - 1) != nil)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test("Every practice carries a classical reference with its own gloss")
+    func referencesArePresent() {
+        for template in PracticeTemplate.all {
+            let reference = ClassicalReference.reference(for: template.id)
+            #expect(reference != nil)
+            #expect(reference?.gloss.isEmpty == false)
+            #expect(reference?.caveat.isEmpty == false)
+            // The gloss is ours; a public-domain edition is named for checking.
+            #expect(reference?.publicDomainSource.isEmpty == false)
+        }
+    }
+
     @Test("Adjustments change length or anchor within the template's bounds")
     func adjustments() {
         let base = profile([("switching", "very_often"), ("branching", "many")])
